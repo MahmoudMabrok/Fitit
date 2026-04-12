@@ -15,11 +15,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import tools.mo3ta.fitit.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,10 +34,20 @@ fun OpenWaScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Open in WhatsApp", fontWeight = FontWeight.Bold) },
+                title = { 
+                    Text(
+                        text = stringResource(R.string.open_wa_title),
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    ) 
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.Default.ArrowBack, 
+                            contentDescription = stringResource(R.string.back),
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -43,7 +55,7 @@ fun OpenWaScreen(
                 )
             )
         },
-        containerColor = Color(0xFF0F0F0F)
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -71,15 +83,15 @@ fun OpenWaScreen(
             Spacer(Modifier.height(24.dp))
 
             Text(
-                "Direct Message",
+                text = stringResource(R.string.direct_message),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onBackground
             )
             Text(
-                "Enter number without saving it to contacts",
+                text = stringResource(R.string.direct_message_desc),
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp)
             )
 
@@ -87,15 +99,18 @@ fun OpenWaScreen(
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E)),
-                shape = RoundedCornerShape(24.dp)
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                shape = RoundedCornerShape(24.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
                     Text(
-                        "Phone Number",
+                        text = stringResource(R.string.phone_number),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -103,22 +118,29 @@ fun OpenWaScreen(
                         value = viewModel.phoneNumber,
                         onValueChange = { viewModel.phoneNumber = it },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("e.g., +1 555 123 4567") },
+                        placeholder = { 
+                            Text(
+                                text = stringResource(R.string.phone_hint),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            ) 
+                        },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                         shape = RoundedCornerShape(16.dp),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF25D366),
-                            unfocusedBorderColor = Color.White.copy(alpha = 0.1f)
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         )
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
-                        "Include your country code (e.g., +20 for Egypt, +1 for US). Spaces, dashes, and (+) are allowed; they will be sanitized.",
+                        text = stringResource(R.string.phone_desc),
                         fontSize = 12.sp,
-                        color = Color.Gray.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
 
                     Spacer(modifier = Modifier.height(32.dp))
@@ -131,9 +153,9 @@ fun OpenWaScreen(
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF25D366))
                     ) {
-                        Icon(Icons.Default.Chat, contentDescription = null)
+                        Icon(Icons.Default.Chat, contentDescription = null, tint = Color.White)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Open WhatsApp", fontWeight = FontWeight.Bold, color = Color.White)
+                        Text(stringResource(R.string.open_whatsapp), fontWeight = FontWeight.Bold, color = Color.White)
                     }
                 }
             }

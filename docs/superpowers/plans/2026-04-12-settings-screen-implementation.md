@@ -15,7 +15,7 @@
 **Files:**
 - Modify: `app/build.gradle.kts:42-62`
 
-- [ ] **Step 1: Add DataStore dependency to app/build.gradle.kts**
+- [x] **Step 1: Add DataStore dependency to app/build.gradle.kts**
 
 ```kotlin
 dependencies {
@@ -42,7 +42,7 @@ dependencies {
 }
 ```
 
-- [ ] **Step 2: Sync Gradle**
+- [x] **Step 2: Sync Gradle**
 
 Run: `./gradlew build --dry-run`
 Expected: Successful dependency resolution

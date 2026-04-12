@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Fitit"
+rootProject.name = "Zaki"
 include(":app")
  

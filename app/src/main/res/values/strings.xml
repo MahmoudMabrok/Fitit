@@ -1,3 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Fitit</string>
+    <string name="app_name">ذكي</string>
+
+    <!-- Home Screen -->
+    <string name="home_title">مجموعة أدوات صانع المحتوى</string>
+    <string name="tool_text_image">نص في صورة</string>
+    <string name="tool_text_image_desc">ضع أي نص في صورة عالية الجودة بتصاميم مخصصة</string>
+    <string name="tool_empty_text">نص غير مرئي</string>
+    <string name="tool_empty_text_desc">أنشئ نصاً غير مرئي لتطبيقات التواصل الاجتماعي</string>
+    <string name="settings">الإعدادات</string>
+    <string name="settings_description">إعدادات التطبيق</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">الإعدادات</string>
+    <string name="appearance">المظهر</string>
+    <string name="theme">السمة</string>
+    <string name="theme_light">فاتح</string>
+    <string name="theme_dark">داكن</string>
+    <string name="theme_system">النظام</string>
+    <string name="language">اللغة</string>
+    <string name="language_english">English</string>
+    <string name="language_arabic">العربية</string>
+    <string name="language_restart_note">تغيير اللغة سيعيد تشغيل الشاشة تلقائياً</string>
+    <string name="notifications">الإشعارات</string>
+    <string name="notifications_enable">تفعيل الإشعارات</string>
+    <string name="notifications_system_settings_hint">اضغط لفتح إعدادات النظام</string>
+    <string name="about">حول</string>
+    <string name="app_name_label">اسم التطبيق</string>
+    <string name="version">الإصدار</string>
+    <string name="back">رجوع</string>
+
+    <!-- Onboarding Screen -->
+    <string name="onboarding_title">مرحباً بك في ذكي</string>
+    <string name="onboarding_desc">رفيقك لمعالجة النصوص وأكثر.</string>
+    <string name="get_started">ابدأ الآن</string>
+
+    <!-- Invisible Text Screen -->
+    <string name="invisible_text_title">نص غير مرئي</string>
+    <string name="char_type">نوع الحرف</string>
+    <string name="length">الطول</string>
+    <string name="copy_to_clipboard">نسخ إلى الحافظة</string>
+    <string name="copied_toast">تم النسخ! الصقه في أي مكان</string>
+
+    <!-- Open WA Screen -->
+    <string name="open_wa_title">فتح في واتساب</string>
+    <string name="direct_message">رسالة مباشرة</string>
+    <string name="direct_message_desc">أدخل الرقم دون حفظه في جهات الاتصال</string>
+    <string name="phone_number">رقم الهاتف</string>
+    <string name="phone_hint">مثال: +20 123 456 7890</string>
+    <string name="phone_desc">قم بتضمين رمز بلدك (مثال: +20 لمصر). المسافات والواصلات و(+) مسموح بها؛ سيتم تنظيفها تلقائياً.</string>
+    <string name="open_whatsapp">فتح واتساب</string>
+
+    <!-- Text Image Screen -->
+    <string name="text_image_title">نص في صورة</string>
+    <string name="content">المحتوى</string>
+    <string name="enter_text_here">أدخل نصك هنا...</string>
+    <string name="background">الخلفية</string>
+    <string name="pick_image">اختر صورة</string>
+    <string name="text_style">نمط النص</string>
+    <string name="text_color">لون النص</string>
+    <string name="alignment">المحاذاة</string>
+    <string name="font_weight">سمك الخط</string>
+    <string name="aspect_ratio">نسبة العرض إلى الارتفاع</string>
+    <string name="padding_label">الهوامش: %1$ddp</string>
+    <string name="export_image">تصدير صورة عالية الجودة</string>
+    <string name="saved_to_gallery">تم الحفظ في المعرض!</string>
+    <string name="error_saving">خطأ: %1$s</string>
+    <string name="text_preview_placeholder">سيظهر نصك هنا</string>
+
+    <!-- Navigation -->
+    <string name="navigate_to_settings">الانتقال إلى الإعدادات</string>
 </resources>

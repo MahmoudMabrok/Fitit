@@ -17,11 +17,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import tools.mo3ta.fitit.R
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -31,16 +33,25 @@ fun EmptyTextScreen(
 ) {
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Invisible Text", fontWeight = FontWeight.Bold) },
+                title = { 
+                    Text(
+                        text = stringResource(R.string.invisible_text_title),
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    ) 
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.Default.ArrowBack, 
+                            contentDescription = stringResource(R.string.back),
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -48,7 +59,7 @@ fun EmptyTextScreen(
                 )
             )
         },
-        containerColor = Color(0xFF0F0F0F)
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -64,11 +75,11 @@ fun EmptyTextScreen(
                     .fillMaxWidth()
                     .wrapContentHeight(),
                 shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)),
-                colors = CardDefaults.outlinedCardColors(containerColor = Color.Transparent)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)),
+                colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().padding(24.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -77,16 +88,16 @@ fun EmptyTextScreen(
                         text = viewModel.generateText(),
                         modifier = Modifier
                             .padding(horizontal = 24.dp)
-                            .background(Color(0xFF007AFF).copy(alpha = 0.1f), RoundedCornerShape(4.dp))
-                            .border(1.dp, Color(0xFF007AFF).copy(alpha = 0.4f), RoundedCornerShape(4.dp))
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), RoundedCornerShape(4.dp))
+                            .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
                             .padding(8.dp)
                     )
                     
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(16.dp))
                     
                     Text(
                         text = "${viewModel.charCount.toInt()} chars · ${viewModel.selectedType.displayName.lowercase()}",
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp,
                         textAlign = TextAlign.Center
                     )
@@ -97,10 +108,10 @@ fun EmptyTextScreen(
 
             // Character Type Selection (Chips)
             Text(
-                "Character Type",
+                text = stringResource(R.string.char_type),
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(12.dp))
@@ -117,8 +128,9 @@ fun EmptyTextScreen(
                         onClick = { viewModel.selectedType = type },
                         label = { Text(type.displayName) },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Color(0xFF007AFF),
-                            selectedLabelColor = Color.White
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     )
                 }
@@ -133,15 +145,15 @@ fun EmptyTextScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "Length",
+                    text = stringResource(R.string.length),
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    "${viewModel.charCount.toInt()}",
+                    text = "${viewModel.charCount.toInt()}",
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF007AFF),
+                    color = MaterialTheme.colorScheme.primary,
                     fontSize = 16.sp
                 )
             }
@@ -151,8 +163,9 @@ fun EmptyTextScreen(
                 onValueChange = { viewModel.charCount = it },
                 valueRange = 1f..200f,
                 colors = SliderDefaults.colors(
-                    thumbColor = Color(0xFF007AFF),
-                    activeTrackColor = Color(0xFF007AFF)
+                    thumbColor = MaterialTheme.colorScheme.primary,
+                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                    inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.24f)
                 )
             )
 
@@ -164,17 +177,17 @@ fun EmptyTextScreen(
                 onClick = {
                     viewModel.copyToClipboard(context)
                     // Showing a Toast as requested, but also have Snackbar host if needed
-                    Toast.makeText(context, "Copied! Paste it anywhere", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.copied_toast), Toast.LENGTH_SHORT).show()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF007AFF))
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Icon(Icons.Default.ContentCopy, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Copy to Clipboard", fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.copy_to_clipboard), fontWeight = FontWeight.Bold)
             }
         }
     }

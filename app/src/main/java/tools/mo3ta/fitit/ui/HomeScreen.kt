@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -19,49 +20,70 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import tools.mo3ta.fitit.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onNavigateToTextImage: () -> Unit,
     onNavigateToEmptyText: () -> Unit,
-    onNavigateToOpenWa: () -> Unit
+    onNavigateToOpenWa: () -> Unit,
+    onNavigateToSettings: () -> Unit
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
+                title = {
                     Column {
-                        Text("Fit It", fontWeight = FontWeight.ExtraBold, fontSize = 24.sp)
-                        Text("Content Creator Toolkit", fontSize = 12.sp, color = Color.Gray)
+                        Text(
+                            text = stringResource(R.string.app_name),
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 24.sp,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Text(
+                            text = stringResource(R.string.home_title),
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.settings),
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
-        containerColor = Color(0xFF0F0F0F)
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         val tools = listOf(
             ToolItem(
-                title = "Text in Image",
-                description = "Fit any text into a HQ image with custom styles",
+                title = stringResource(R.string.tool_text_image),
+                description = stringResource(R.string.tool_text_image_desc),
                 icon = Icons.Default.AutoAwesome,
                 color = Color(0xFF007AFF),
                 onClick = onNavigateToTextImage
             ),
             ToolItem(
-                title = "Invisible Text",
-                description = "Generate invisible text for social apps",
+                title = stringResource(R.string.tool_empty_text),
+                description = stringResource(R.string.tool_empty_text_desc),
                 icon = Icons.Default.VisibilityOff,
                 color = Color(0xFF5856D6),
                 onClick = onNavigateToEmptyText
             ),
             ToolItem(
-                title = "Open in WA",
-                description = "Direct message any unsaved WhatsApp number",
+                title = stringResource(R.string.open_wa_title),
+                description = stringResource(R.string.direct_message_desc),
                 icon = Icons.Default.Chat,
                 color = Color(0xFF25D366),
                 onClick = onNavigateToOpenWa
@@ -88,7 +110,10 @@ fun ToolCard(tool: ToolItem) {
             .fillMaxWidth()
             .clickable { tool.onClick() },
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E))
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
@@ -113,8 +138,17 @@ fun ToolCard(tool: ToolItem) {
             Spacer(modifier = Modifier.width(16.dp))
 
             Column {
-                Text(tool.title, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.White)
-                Text(tool.description, fontSize = 14.sp, color = Color.Gray)
+                Text(
+                    text = tool.title,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = tool.description,
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

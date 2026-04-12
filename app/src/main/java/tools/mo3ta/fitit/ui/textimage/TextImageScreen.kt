@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.toIntSize
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
+import tools.mo3ta.fitit.R
 import tools.mo3ta.fitit.ui.AutoResizeText
 import java.io.OutputStream
 
@@ -60,10 +62,20 @@ fun TextImageScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Text in Image", fontWeight = FontWeight.Bold) },
+                title = { 
+                    Text(
+                        text = stringResource(R.string.text_image_title),
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    ) 
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.Default.ArrowBack, 
+                            contentDescription = stringResource(R.string.back),
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -71,7 +83,7 @@ fun TextImageScreen(
                 )
             )
         },
-        containerColor = Color(0xFF0F0F0F)
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -87,7 +99,7 @@ fun TextImageScreen(
                     .fillMaxWidth()
                     .aspectRatio(viewModel.aspectRatio)
                     .clip(RoundedCornerShape(12.dp))
-                    .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+                    .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
                     .background(viewModel.backgroundColor)
                     .drawWithCache {
                         onDrawWithContent {
@@ -112,7 +124,7 @@ fun TextImageScreen(
                 Box(modifier = Modifier.padding(viewModel.padding.dp)) {
                     if (viewModel.text.isEmpty()) {
                         Text(
-                            "Your text will appear here",
+                            text = stringResource(R.string.text_preview_placeholder),
                             color = viewModel.textColor.copy(alpha = 0.5f),
                             textAlign = TextAlign.Center
                         )
@@ -135,24 +147,41 @@ fun TextImageScreen(
             // 2. Controls Area
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E)),
-                shape = RoundedCornerShape(24.dp)
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                shape = RoundedCornerShape(24.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
-                    Text("Content", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = Color.Gray)
+                    Text(
+                        text = stringResource(R.string.content),
+                        fontWeight = FontWeight.SemiBold, 
+                        fontSize = 14.sp, 
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
                         value = viewModel.text,
                         onValueChange = { viewModel.text = it },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Enter your text here...") },
+                        placeholder = { Text(stringResource(R.string.enter_text_here)) },
                         maxLines = 5,
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                        )
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    Text("Background", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = Color.Gray)
+                    Text(
+                        text = stringResource(R.string.background),
+                        fontWeight = FontWeight.SemiBold, 
+                        fontSize = 14.sp, 
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Spacer(modifier = Modifier.height(12.dp))
                     
                     Row(
@@ -167,13 +196,16 @@ fun TextImageScreen(
                                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                                 )
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2C2C2E)),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            ),
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Icon(Icons.Default.PhotoLibrary, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(8.dp))
-                            Text("Pick Image", fontSize = 12.sp)
+                            Text(stringResource(R.string.pick_image), fontSize = 12.sp)
                         }
                         
                         // Clear Image
@@ -193,7 +225,7 @@ fun TextImageScreen(
                                         .size(24.dp)
                                         .clip(CircleShape)
                                         .background(color)
-                                        .border(if (viewModel.backgroundColor == color && viewModel.backgroundImageUri == null) 2.dp else 0.dp, Color.Gray, CircleShape)
+                                        .border(if (viewModel.backgroundColor == color && viewModel.backgroundImageUri == null) 2.dp else 1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), CircleShape)
                                         .clickable { 
                                             viewModel.backgroundColor = color
                                             viewModel.backgroundImageUri = null 
@@ -205,7 +237,12 @@ fun TextImageScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    Text("Text Style", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = Color.Gray)
+                    Text(
+                        text = stringResource(R.string.text_style),
+                        fontWeight = FontWeight.SemiBold, 
+                        fontSize = 14.sp, 
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Spacer(modifier = Modifier.height(12.dp))
                     
                     // Text Color selector
@@ -214,7 +251,11 @@ fun TextImageScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Text Color", fontSize = 14.sp)
+                        Text(
+                            text = stringResource(R.string.text_color),
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             listOf(Color.White, Color.Black, Color(0xFFFFCC00), Color(0xFFFF3B30), Color(0xFF34C759)).forEach { color ->
                                 Box(
@@ -222,7 +263,7 @@ fun TextImageScreen(
                                         .size(24.dp)
                                         .clip(CircleShape)
                                         .background(color)
-                                        .border(if (viewModel.textColor == color) 2.dp else 0.dp, Color.Gray, CircleShape)
+                                        .border(if (viewModel.textColor == color) 2.dp else 1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), CircleShape)
                                         .clickable { viewModel.textColor = color }
                                 )
                             }
@@ -236,7 +277,12 @@ fun TextImageScreen(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Alignment", fontSize = 14.sp, modifier = Modifier.weight(1f))
+                        Text(
+                            text = stringResource(R.string.alignment),
+                            fontSize = 14.sp,
+                            modifier = Modifier.weight(1f),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                         SingleChoiceSegmentedButtonRow {
                             viewModel.textAlignments.forEachIndexed { index, option ->
                                 SegmentedButton(
@@ -260,7 +306,11 @@ fun TextImageScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Font Weight
-                    Text("Font Weight", fontSize = 14.sp)
+                    Text(
+                        text = stringResource(R.string.font_weight),
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     ScrollableTabRow(
                         selectedTabIndex = viewModel.fontWeights.indexOfFirst { it.weight == viewModel.fontWeight },
@@ -274,7 +324,12 @@ fun TextImageScreen(
                                 selected = viewModel.fontWeight == option.weight,
                                 onClick = { viewModel.fontWeight = option.weight },
                                 label = { Text(option.name) },
-                                modifier = Modifier.padding(end = 8.dp)
+                                modifier = Modifier.padding(end = 8.dp),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             )
                         }
                     }
@@ -282,7 +337,11 @@ fun TextImageScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Aspect Ratio
-                    Text("Aspect Ratio", fontSize = 14.sp)
+                    Text(
+                        text = stringResource(R.string.aspect_ratio),
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -292,7 +351,12 @@ fun TextImageScreen(
                             FilterChip(
                                 selected = viewModel.aspectRatio == option.ratio,
                                 onClick = { viewModel.aspectRatio = option.ratio },
-                                label = { Text(option.name) }
+                                label = { Text(option.name) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             )
                         }
                     }
@@ -300,11 +364,20 @@ fun TextImageScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Padding Slider
-                    Text("Padding: ${viewModel.padding.toInt()}dp", fontSize = 14.sp)
+                    Text(
+                        text = stringResource(R.string.padding_label, viewModel.padding.toInt()),
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                     Slider(
                         value = viewModel.padding,
                         onValueChange = { viewModel.padding = it },
-                        valueRange = 0f..100f
+                        valueRange = 0f..100f,
+                        colors = SliderDefaults.colors(
+                            thumbColor = MaterialTheme.colorScheme.primary,
+                            activeTrackColor = MaterialTheme.colorScheme.primary,
+                            inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.24f)
+                        )
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -314,10 +387,10 @@ fun TextImageScreen(
                             scope.launch {
                                 try {
                                     val bitmap = graphicsLayer.toImageBitmap().asAndroidBitmap()
-                                    saveBitmapToGallery(context, bitmap, "FitIt_${System.currentTimeMillis()}")
-                                    Toast.makeText(context, "Saved to Gallery!", Toast.LENGTH_SHORT).show()
+                                    saveBitmapToGallery(context, bitmap, "Zaki_${System.currentTimeMillis()}")
+                                    Toast.makeText(context, context.getString(R.string.saved_to_gallery), Toast.LENGTH_SHORT).show()
                                 } catch (e: Exception) {
-                                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(context, context.getString(R.string.error_saving, e.message ?: ""), Toast.LENGTH_LONG).show()
                                 }
                             }
                         },
@@ -325,11 +398,15 @@ fun TextImageScreen(
                             .fillMaxWidth()
                             .height(56.dp),
                         shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF007AFF))
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
-                        Icon(Icons.Default.Download, contentDescription = null)
+                        Icon(Icons.Default.Download, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Export High Quality Image", fontWeight = FontWeight.Bold)
+                        Text(
+                            text = stringResource(R.string.export_image),
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                 }
             }
