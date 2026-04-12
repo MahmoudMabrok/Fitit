@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import tools.mo3ta.fitit.R
+import tools.mo3ta.fitit.analytics.AnalyticsManager
 import tools.mo3ta.fitit.data.ThemeMode
 import tools.mo3ta.fitit.ui.theme.PrimaryBlue
 import tools.mo3ta.fitit.ui.theme.SurfaceVariant
@@ -35,6 +36,10 @@ fun SettingsScreen(
     val themeMode by viewModel.themeMode.collectAsState()
     val currentLocale = viewModel.getCurrentLocale()
     val isNotificationsEnabled = viewModel.isNotificationsEnabled()
+
+    LaunchedEffect(Unit) {
+        AnalyticsManager.trackScreenView("settings")
+    }
 
     Column(
         modifier = Modifier
@@ -97,7 +102,10 @@ fun SettingsScreen(
                         )
                         ThemeChips(
                             selectedTheme = themeMode,
-                            onThemeSelected = { viewModel.setTheme(it) }
+                            onThemeSelected = {
+                                viewModel.setTheme(it)
+                                AnalyticsManager.trackThemeChanged(it.name.lowercase())
+                            }
                         )
                     }
 
@@ -123,7 +131,10 @@ fun SettingsScreen(
                         )
                         LanguageChips(
                             selectedLocale = currentLocale,
-                            onLanguageSelected = { viewModel.setLanguage(it) }
+                            onLanguageSelected = {
+                                viewModel.setLanguage(it)
+                                AnalyticsManager.trackLanguageChanged(it)
+                            }
                         )
                     }
                 }
@@ -142,7 +153,10 @@ fun SettingsScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { viewModel.openNotificationSettings(context) }
+                        .clickable {
+                            AnalyticsManager.trackNotificationsSettingsOpened()
+                            viewModel.openNotificationSettings(context)
+                        }
                         .padding(14.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -164,7 +178,10 @@ fun SettingsScreen(
 
                     Switch(
                         checked = isNotificationsEnabled,
-                        onCheckedChange = { viewModel.openNotificationSettings(context) },
+                        onCheckedChange = {
+                            AnalyticsManager.trackNotificationsSettingsOpened()
+                            viewModel.openNotificationSettings(context)
+                        },
                         modifier = Modifier.padding(start = 14.dp)
                     )
                 }

@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import tools.mo3ta.fitit.analytics.AnalyticsManager
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -38,6 +39,11 @@ fun HomeScreen(
     onNavigateToOpenWa: () -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
+    // Track screen view
+    LaunchedEffect(Unit) {
+        AnalyticsManager.trackScreenView("home")
+    }
+
     // Request notification permission once after onboarding (API 33+)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         val launcher = rememberLauncherForActivityResult(

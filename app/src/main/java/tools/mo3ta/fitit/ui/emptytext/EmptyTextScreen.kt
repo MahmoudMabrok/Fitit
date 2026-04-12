@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import tools.mo3ta.fitit.R
+import tools.mo3ta.fitit.analytics.AnalyticsManager
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -31,6 +32,10 @@ fun EmptyTextScreen(
     onBack: () -> Unit,
     viewModel: EmptyTextViewModel = viewModel()
 ) {
+    LaunchedEffect(Unit) {
+        AnalyticsManager.trackScreenView("empty_text")
+    }
+
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -176,6 +181,7 @@ fun EmptyTextScreen(
             Button(
                 onClick = {
                     viewModel.copyToClipboard(context)
+                    AnalyticsManager.trackEmptyTextCopied(viewModel.selectedType.displayName, viewModel.charCount.toInt())
                     // Showing a Toast as requested, but also have Snackbar host if needed
                     Toast.makeText(context, context.getString(R.string.copied_toast), Toast.LENGTH_SHORT).show()
                 },

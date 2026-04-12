@@ -7,7 +7,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
+import tools.mo3ta.fitit.analytics.AnalyticsManager
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -19,6 +21,10 @@ import tools.mo3ta.fitit.R
 
 @Composable
 fun OnboardingScreen(onGetStarted: () -> Unit) {
+    LaunchedEffect(Unit) {
+        AnalyticsManager.trackScreenView("onboarding")
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -52,7 +58,10 @@ fun OnboardingScreen(onGetStarted: () -> Unit) {
             Spacer(modifier = Modifier.height(48.dp))
             
             Button(
-                onClick = onGetStarted,
+                onClick = {
+                    AnalyticsManager.trackOnboardingCompleted()
+                    onGetStarted()
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),

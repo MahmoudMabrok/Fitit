@@ -12,6 +12,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import tools.mo3ta.fitit.analytics.AnalyticsManager
 import tools.mo3ta.fitit.data.ThemeMode
 import tools.mo3ta.fitit.ui.HomeScreen
 import tools.mo3ta.fitit.ui.emptytext.EmptyTextScreen
@@ -28,6 +29,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
+        AnalyticsManager.trackAppOpen()
         setContent {
             // Force RTL for the whole app as it's forced Arabic
             // Default strings in strings.xml are now in Arabic.

@@ -41,6 +41,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import tools.mo3ta.fitit.R
+import tools.mo3ta.fitit.analytics.AnalyticsManager
 import tools.mo3ta.fitit.ui.AutoResizeText
 import java.io.OutputStream
 
@@ -50,13 +51,22 @@ fun TextImageScreen(
     onBack: () -> Unit,
     viewModel: TextImageViewModel = viewModel()
 ) {
+    LaunchedEffect(Unit) {
+        AnalyticsManager.trackScreenView("text_image")
+    }
+
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val graphicsLayer = rememberGraphicsLayer()
-    
+
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri -> viewModel.backgroundImageUri = uri }
+        onResult = { uri ->
+            if (uri != null) {
+                AnalyticsManager.trackTextImageBackgroundPicked()
+            }
+            viewModel.backgroundImageUri = uri
+        }
     )
 
     Scaffold(
@@ -388,6 +398,7 @@ fun TextImageScreen(
                                 try {
                                     val bitmap = graphicsLayer.toImageBitmap().asAndroidBitmap()
                                     saveBitmapToGallery(context, bitmap, "Zaki_${System.currentTimeMillis()}")
+                                    AnalyticsManager.trackTextImageExported()
                                     Toast.makeText(context, context.getString(R.string.saved_to_gallery), Toast.LENGTH_SHORT).show()
                                 } catch (e: Exception) {
                                     Toast.makeText(context, context.getString(R.string.error_saving, e.message ?: ""), Toast.LENGTH_LONG).show()

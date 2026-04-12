@@ -20,8 +20,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import tools.mo3ta.fitit.R
+import tools.mo3ta.fitit.analytics.AnalyticsManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +32,10 @@ fun OpenWaScreen(
     viewModel: OpenWaViewModel = viewModel()
 ) {
     val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        AnalyticsManager.trackScreenView("open_wa")
+    }
 
     Scaffold(
         topBar = {
@@ -146,7 +152,10 @@ fun OpenWaScreen(
                     Spacer(modifier = Modifier.height(32.dp))
 
                     Button(
-                        onClick = { viewModel.openWhatsApp(context) },
+                        onClick = {
+                            AnalyticsManager.trackOpenWaSent()
+                            viewModel.openWhatsApp(context)
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
