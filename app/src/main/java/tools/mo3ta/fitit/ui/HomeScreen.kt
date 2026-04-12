@@ -7,13 +7,17 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Chat
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +38,17 @@ fun HomeScreen(
     onNavigateToOpenWa: () -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
+    // Request notification permission once after onboarding (API 33+)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        val launcher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission()
+        ) { /* Permission result ignored */ }
+
+        LaunchedEffect(Unit) {
+            launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -52,15 +67,16 @@ fun HomeScreen(
                         )
                     }
                 },
-                actions = {
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(
-                            Icons.Default.Settings,
-                            contentDescription = stringResource(R.string.settings),
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                },
+                // TODO: Uncomment when settings screen is ready
+                // actions = {
+                //     IconButton(onClick = onNavigateToSettings) {
+                //         Icon(
+                //             Icons.Default.Settings,
+                //             contentDescription = stringResource(R.string.settings),
+                //             tint = MaterialTheme.colorScheme.onBackground
+                //         )
+                //     }
+                // },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },

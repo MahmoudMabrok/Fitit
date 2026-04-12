@@ -1,13 +1,9 @@
 package tools.mo3ta.fitit
 
-import android.Manifest
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -47,16 +43,7 @@ class MainActivity : ComponentActivity() {
         val settingsViewModel: SettingsViewModel = viewModel()
         val themeMode by settingsViewModel.themeMode.collectAsState()
 
-        // Request notification permission on first app launch (API 33+)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val launcher = rememberLauncherForActivityResult(
-                contract = ActivityResultContracts.RequestPermission()
-            ) { /* Permission result ignored - silent on deny */ }
-
-            LaunchedEffect(Unit) {
-                launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
+        // Notification permission is requested in HomeScreen after onboarding
 
         // Determine dark theme based on settings
         val systemDarkTheme = isSystemInDarkTheme()
