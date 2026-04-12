@@ -1,0 +1,51 @@
+# Built objects
+*.class
+*.os
+*.pyc
+
+# IDE files
+.idea/
+*.iml
+*.iws
+
+# Gradle files
+.gradle/
+build/
+*/build/
+
+# Local configuration files
+local.properties
+
+# Log files
+*.log
+
+# Android Studio / IntelliJ IDEA
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/gradle.xml
+.idea/assetWizardSettings.xml
+.idea/dictionaries
+.idea/libraries
+.idea/caches
+
+# External native build
+.externalNativeBuild
+.cxx/
+
+# Captures
+captures/
+
+# OS X
+.DS_Store
+
+# Misc
+*.apk
+*.ap_
+*.dex
+bin/
+
+# Google Play Services
+.google_play_services/
+
+# Proguard
+proguard/
