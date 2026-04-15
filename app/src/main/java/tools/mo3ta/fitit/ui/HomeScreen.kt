@@ -13,6 +13,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.ContentCut
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -38,6 +39,7 @@ fun HomeScreen(
     onNavigateToTextImage: () -> Unit,
     onNavigateToEmptyText: () -> Unit,
     onNavigateToOpenWa: () -> Unit,
+    onNavigateToTextSplitter: () -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
     // Track screen view
@@ -95,8 +97,10 @@ fun HomeScreen(
         val emptyTextDesc = stringResource(R.string.tool_empty_text_desc)
         val openWaTitle = stringResource(R.string.open_wa_title)
         val openWaDesc = stringResource(R.string.direct_message_desc)
+        val textSplitterTitle = stringResource(R.string.tool_text_splitter)
+        val textSplitterDesc = stringResource(R.string.tool_text_splitter_desc)
 
-        val tools = remember(textImageTitle, emptyTextTitle, openWaTitle) {
+        val tools = remember(textImageTitle, emptyTextTitle, openWaTitle, textSplitterTitle) {
             listOf(
                 ToolItem(
                     title = textImageTitle,
@@ -115,12 +119,18 @@ fun HomeScreen(
                     description = openWaDesc,
                     icon = Icons.Default.Chat,
                     color = Color(0xFF25D366)
+                ),
+                ToolItem(
+                    title = textSplitterTitle,
+                    description = textSplitterDesc,
+                    icon = Icons.Default.ContentCut,
+                    color = Color(0xFFFF9500)
                 )
             )
         }
 
-        val onClicks = remember(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa) {
-            listOf(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa)
+        val onClicks = remember(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa, onNavigateToTextSplitter) {
+            listOf(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa, onNavigateToTextSplitter)
         }
 
         LazyVerticalGrid(
