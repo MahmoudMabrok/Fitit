@@ -1,8 +1,10 @@
 package tools.mo3ta.fitit.ui.textsplitter
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -67,6 +69,7 @@ fun TextSplitterScreen(
             // Preset chips
             item {
                 Row(
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     SplitPreset.entries.forEach { preset ->
@@ -106,7 +109,7 @@ fun TextSplitterScreen(
                 OutlinedTextField(
                     value = viewModel.inputText,
                     onValueChange = { viewModel.inputText = it },
-                    label = { Text(stringResource(R.string.text_splitter_input_hint)) },
+                    placeholder = { Text(stringResource(R.string.text_splitter_input_hint)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 160.dp),
