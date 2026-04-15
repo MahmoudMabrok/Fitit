@@ -1,9 +1,16 @@
 package tools.mo3ta.fitit.ui.textsplitter
 
+import android.app.Application
+import io.mockk.mockk
 import org.junit.Assert.*
 import org.junit.Test
 
 class TextSplitterViewModelTest {
+
+    private fun createViewModel(): TextSplitterViewModel {
+        val application = mockk<Application>(relaxed = true)
+        return TextSplitterViewModel(application)
+    }
 
     @Test
     fun `splitText returns multiple chunks for long text`() {
@@ -50,14 +57,14 @@ class TextSplitterViewModelTest {
 
     @Test
     fun `isSplitEnabled is false for blank input`() {
-        val vm = TextSplitterViewModel()
+        val vm = createViewModel()
         vm.inputText = "   "
         assertFalse(vm.isSplitEnabled)
     }
 
     @Test
     fun `isSplitEnabled is false for custom preset with zero size`() {
-        val vm = TextSplitterViewModel()
+        val vm = createViewModel()
         vm.inputText = "some text"
         vm.selectedPreset = SplitPreset.CUSTOM
         vm.customSizeInput = "0"
@@ -66,7 +73,7 @@ class TextSplitterViewModelTest {
 
     @Test
     fun `split sets errorMessage when text fits in one chunk`() {
-        val vm = TextSplitterViewModel()
+        val vm = createViewModel()
         vm.inputText = "short"
         vm.selectedPreset = SplitPreset.TWITTER  // 280 chars
         vm.split()
@@ -76,7 +83,7 @@ class TextSplitterViewModelTest {
 
     @Test
     fun `split produces chunks and clears errorMessage for long text`() {
-        val vm = TextSplitterViewModel()
+        val vm = createViewModel()
         vm.inputText = "word ".repeat(60).trim()  // ~300 chars
         vm.selectedPreset = SplitPreset.WHATSAPP  // 200 chars
         vm.split()

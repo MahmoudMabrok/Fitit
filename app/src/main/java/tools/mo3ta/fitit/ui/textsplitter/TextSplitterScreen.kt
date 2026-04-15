@@ -187,7 +187,7 @@ private fun ChunkCard(index: Int, chunk: String, onCopy: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "${index.toArabicNumeral()} — ${chunk.length.toArabicNumeral()} ${stringResource(R.string.text_splitter_chars)}",
+                    text = "${stringResource(R.string.text_splitter_chunk_label)} ${index.toArabicNumeral()} — ${chunk.length.toArabicNumeral()} ${stringResource(R.string.text_splitter_chars)}",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium

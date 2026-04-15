@@ -6,7 +6,7 @@ import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -18,7 +18,7 @@ enum class SplitPreset(val fixedSize: Int?) {
     CUSTOM(null)
 }
 
-class TextSplitterViewModel : ViewModel() {
+class TextSplitterViewModel(application: android.app.Application) : AndroidViewModel(application) {
 
     var inputText by mutableStateOf("")
     var selectedPreset by mutableStateOf(SplitPreset.WHATSAPP)
@@ -37,7 +37,7 @@ class TextSplitterViewModel : ViewModel() {
         if (size <= 0) return
         val trimmed = inputText.trim()
         if (trimmed.length <= size) {
-            errorMessage = "النص قصير جداً، لا حاجة للتقسيم"
+            errorMessage = getApplication<android.app.Application>().getString(tools.mo3ta.fitit.R.string.text_splitter_error_too_short)
             chunks = emptyList()
             return
         }
@@ -54,7 +54,7 @@ class TextSplitterViewModel : ViewModel() {
     }
 
     fun copyChunk(context: Context, chunk: String) {
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clipboard = context.applicationContext.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("chunk", chunk))
     }
 
