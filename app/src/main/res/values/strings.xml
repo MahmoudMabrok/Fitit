@@ -70,4 +70,19 @@
 
     <!-- Navigation -->
     <string name="navigate_to_settings">الانتقال إلى الإعدادات</string>
+
+    <!-- Text Splitter Screen -->
+    <string name="tool_text_splitter">تقسيم النص</string>
+    <string name="tool_text_splitter_desc">قسّم النص الطويل إلى أجزاء مناسبة للنشر</string>
+    <string name="text_splitter_title">تقسيم النص</string>
+    <string name="text_splitter_preset_whatsapp">واتساب</string>
+    <string name="text_splitter_preset_twitter">تويتر</string>
+    <string name="text_splitter_preset_custom">مخصص</string>
+    <string name="text_splitter_custom_size_label">الحد الأقصى للحروف</string>
+    <string name="text_splitter_input_hint">أدخل النص هنا...</string>
+    <string name="text_splitter_split_button">تقسيم</string>
+    <string name="text_splitter_copy_all">نسخ الكل</string>
+    <string name="text_splitter_error_too_short">النص قصير جداً، لا حاجة للتقسيم</string>
+    <string name="text_splitter_chunk_label">الجزء</string>
+    <string name="text_splitter_chars">حرف</string>
 </resources>
