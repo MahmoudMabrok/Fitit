@@ -53,3 +53,5 @@ proguard/
 
 **google-services.json
 
+.worktrees/
+.worktrees/
