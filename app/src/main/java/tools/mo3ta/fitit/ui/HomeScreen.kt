@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import android.Manifest
 import android.os.Build
@@ -14,10 +13,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import tools.mo3ta.fitit.analytics.AnalyticsManager
@@ -44,14 +45,15 @@ fun HomeScreen(
         AnalyticsManager.trackScreenView("home")
     }
 
+    // Launcher must be outside conditional — Compose rules prohibit composable calls inside if
+    val notificationLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { /* Permission result ignored */ }
+
     // Request notification permission once after onboarding (API 33+)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        val launcher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.RequestPermission()
-        ) { /* Permission result ignored */ }
-
         LaunchedEffect(Unit) {
-            launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
 
@@ -73,44 +75,53 @@ fun HomeScreen(
                         )
                     }
                 },
-                // TODO: Uncomment when settings screen is ready
-                // actions = {
-                //     IconButton(onClick = onNavigateToSettings) {
-                //         Icon(
-                //             Icons.Default.Settings,
-                //             contentDescription = stringResource(R.string.settings),
-                //             tint = MaterialTheme.colorScheme.onBackground
-                //         )
-                //     }
-                // },
+                actions = {
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.settings),
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        val tools = listOf(
-            ToolItem(
-                title = stringResource(R.string.tool_text_image),
-                description = stringResource(R.string.tool_text_image_desc),
-                icon = Icons.Default.AutoAwesome,
-                color = Color(0xFF007AFF),
-                onClick = onNavigateToTextImage
-            ),
-            ToolItem(
-                title = stringResource(R.string.tool_empty_text),
-                description = stringResource(R.string.tool_empty_text_desc),
-                icon = Icons.Default.VisibilityOff,
-                color = Color(0xFF5856D6),
-                onClick = onNavigateToEmptyText
-            ),
-            ToolItem(
-                title = stringResource(R.string.open_wa_title),
-                description = stringResource(R.string.direct_message_desc),
-                icon = Icons.Default.Chat,
-                color = Color(0xFF25D366),
-                onClick = onNavigateToOpenWa
+        val textImageTitle = stringResource(R.string.tool_text_image)
+        val textImageDesc = stringResource(R.string.tool_text_image_desc)
+        val emptyTextTitle = stringResource(R.string.tool_empty_text)
+        val emptyTextDesc = stringResource(R.string.tool_empty_text_desc)
+        val openWaTitle = stringResource(R.string.open_wa_title)
+        val openWaDesc = stringResource(R.string.direct_message_desc)
+
+        val tools = remember(textImageTitle, emptyTextTitle, openWaTitle) {
+            listOf(
+                ToolItem(
+                    title = textImageTitle,
+                    description = textImageDesc,
+                    icon = Icons.Default.AutoAwesome,
+                    color = Color(0xFF007AFF)
+                ),
+                ToolItem(
+                    title = emptyTextTitle,
+                    description = emptyTextDesc,
+                    icon = Icons.Default.VisibilityOff,
+                    color = Color(0xFF5856D6)
+                ),
+                ToolItem(
+                    title = openWaTitle,
+                    description = openWaDesc,
+                    icon = Icons.Default.Chat,
+                    color = Color(0xFF25D366)
+                )
             )
-        )
+        }
+
+        val onClicks = remember(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa) {
+            listOf(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa)
+        }
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(1),
@@ -118,19 +129,19 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.padding(innerPadding)
         ) {
-            items(tools) { tool ->
-                ToolCard(tool)
+            items(tools.size) { index ->
+                ToolCard(tool = tools[index], onClick = onClicks[index])
             }
         }
     }
 }
 
 @Composable
-fun ToolCard(tool: ToolItem) {
+fun ToolCard(tool: ToolItem, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { tool.onClick() },
+            .clickable { onClick() },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
@@ -181,5 +192,4 @@ data class ToolItem(
     val description: String,
     val icon: ImageVector,
     val color: Color,
-    val onClick: () -> Unit
 )
