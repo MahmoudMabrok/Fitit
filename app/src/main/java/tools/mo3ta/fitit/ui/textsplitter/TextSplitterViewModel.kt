@@ -30,8 +30,7 @@ class TextSplitterViewModel : ViewModel() {
         get() = selectedPreset.fixedSize ?: (customSizeInput.toIntOrNull() ?: 0)
 
     val isSplitEnabled: Boolean
-        get() = inputText.isNotBlank() &&
-                (selectedPreset != SplitPreset.CUSTOM || (customSizeInput.toIntOrNull() ?: 0) > 0)
+        get() = inputText.isNotBlank() && chunkSize > 0
 
     fun split() {
         val size = chunkSize
@@ -60,10 +59,12 @@ class TextSplitterViewModel : ViewModel() {
     }
 
     fun copyAll(context: Context) {
-        try { AnalyticsManager.trackTextSplitterCopyAll(chunkCount = chunks.size) } catch (_: Exception) { }
+        try {
+            AnalyticsManager.trackTextSplitterCopyAll(chunkCount = chunks.size)
+        } catch (_: Exception) { }
         viewModelScope.launch {
             chunks.reversed().forEach { chunk ->
-                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clipboard = context.applicationContext.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 clipboard.setPrimaryClip(ClipData.newPlainText("chunk", chunk))
                 delay(150)
             }
