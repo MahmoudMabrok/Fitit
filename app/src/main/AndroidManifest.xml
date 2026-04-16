@@ -9,7 +9,7 @@
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
 
     <application
-        android:name=".FititApplication"
+        android:name=".ZakiApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -17,7 +17,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Fitit">
+        android:theme="@style/Theme.Fitit"
+        android:localeConfig="@xml/locale_config">
         <meta-data
             android:name="google_analytics_adid_collection_enabled"
             android:value="false" />
@@ -27,13 +28,23 @@
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Fitit"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|locale|layoutDirection|uiMode">
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

@@ -91,4 +91,18 @@
     <string name="text_splitter_preset_twitter_desc">ملائم لتغريدات تويتر</string>
     <string name="text_splitter_preset_custom_desc">حجم تختاره أنت</string>
     <string name="text_splitter_chars_unit">حرف</string>
+
+    <!-- Video Splitter Screen -->
+    <string name="tool_video_splitter">تقسيم الفيديو</string>
+    <string name="tool_video_splitter_desc">قسّم الفيديو إلى مقاطع قصيرة مناسبة للنشر</string>
+    <string name="video_splitter_title">تقسيم الفيديو</string>
+    <string name="video_splitter_feature_desc">اختر فيديو بحد أقصى ٥ دقائق، سيتم تقسيمه إلى مقاطع مدتها ٣٠ ثانية مع تداخل ثانيتين بين كل مقطع.</string>
+    <string name="video_splitter_pick_video">اختر فيديو من المعرض</string>
+    <string name="video_splitter_duration_error">مدة الفيديو تتجاوز ٥ دقائق</string>
+    <string name="video_splitter_split_button">تقسيم</string>
+    <string name="video_splitter_save">حفظ</string>
+    <string name="video_splitter_share">مشاركة</string>
+    <string name="video_splitter_saved">تم الحفظ ✓</string>
+    <string name="video_splitter_chunk_label">مقطع</string>
+    <string name="video_splitter_error_generic">فشل تقسيم الفيديو، حاول مرة أخرى</string>
 </resources>
