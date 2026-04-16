@@ -384,14 +384,10 @@ private fun TextInputCard(
 ) {
     val charCount  = text.length
     val fillRatio  = if (chunkSize > 0) (charCount.toFloat() / chunkSize).coerceIn(0f, 1f) else 0f
-    val overLimit  = chunkSize > 0 && charCount > chunkSize
 
     val borderColor by animateColorAsState(
-        targetValue = when {
-            overLimit       -> MaterialTheme.colorScheme.error
-            fillRatio > 0.85f -> OrangeAccent
-            else            -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
-        },
+        targetValue = if (fillRatio > 0.85f) OrangeAccent
+                      else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
         label = "input_border"
     )
 
@@ -434,7 +430,7 @@ private fun TextInputCard(
                         .fillMaxWidth()
                         .height(3.dp)
                         .clip(RoundedCornerShape(2.dp)),
-                    color = if (overLimit) MaterialTheme.colorScheme.error else OrangeAccent,
+                    color = OrangeAccent,
                     trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
                 )
                 Spacer(Modifier.height(6.dp))
@@ -443,8 +439,7 @@ private fun TextInputCard(
                                "${charCount.toArabicNumeral()} / ${chunkSize.toArabicNumeral()}"
                            else charCount.toArabicNumeral(),
                     fontSize = 11.sp,
-                    color = if (overLimit) MaterialTheme.colorScheme.error
-                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Start
                 )
