@@ -20,6 +20,7 @@ import tools.mo3ta.fitit.ui.settings.SettingsScreen
 import tools.mo3ta.fitit.ui.settings.SettingsViewModel
 import tools.mo3ta.fitit.ui.textimage.TextImageScreen
 import tools.mo3ta.fitit.ui.textsplitter.TextSplitterScreen
+import tools.mo3ta.fitit.ui.videosplitter.VideoSplitterScreen
 import tools.mo3ta.fitit.ui.theme.FititTheme
 
 class MainActivity : ComponentActivity() {
@@ -65,6 +66,7 @@ class MainActivity : ComponentActivity() {
                         onNavigateToEmptyText = { navController.navigate("empty_text") },
                         onNavigateToOpenWa = { navController.navigate("open_wa") },
                         onNavigateToTextSplitter = { navController.navigate("text_splitter") },
+                        onNavigateToVideoSplitter = { navController.navigate("video_splitter") },
                         onNavigateToSettings = { navController.navigate("settings") }
                     )
                 }
@@ -82,6 +84,9 @@ class MainActivity : ComponentActivity() {
                 }
                 composable("text_splitter") {
                     TextSplitterScreen(onBack = { navController.popBackStack() })
+                }
+                composable("video_splitter") {
+                    VideoSplitterScreen(onBack = { navController.popBackStack() })
                 }
             }
         }

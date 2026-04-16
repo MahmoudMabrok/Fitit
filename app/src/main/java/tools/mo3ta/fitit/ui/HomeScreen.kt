@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.ContentCut
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -40,6 +41,7 @@ fun HomeScreen(
     onNavigateToEmptyText: () -> Unit,
     onNavigateToOpenWa: () -> Unit,
     onNavigateToTextSplitter: () -> Unit,
+    onNavigateToVideoSplitter: () -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
     // Track screen view
@@ -99,38 +101,21 @@ fun HomeScreen(
         val openWaDesc = stringResource(R.string.direct_message_desc)
         val textSplitterTitle = stringResource(R.string.tool_text_splitter)
         val textSplitterDesc = stringResource(R.string.tool_text_splitter_desc)
+        val videoSplitterTitle = stringResource(R.string.tool_video_splitter)
+        val videoSplitterDesc = stringResource(R.string.tool_video_splitter_desc)
 
-        val tools = remember(textImageTitle, emptyTextTitle, openWaTitle, textSplitterTitle) {
+        val tools = remember(textImageTitle, emptyTextTitle, openWaTitle, textSplitterTitle, videoSplitterTitle) {
             listOf(
-                ToolItem(
-                    title = textImageTitle,
-                    description = textImageDesc,
-                    icon = Icons.Default.AutoAwesome,
-                    color = Color(0xFF007AFF)
-                ),
-                ToolItem(
-                    title = emptyTextTitle,
-                    description = emptyTextDesc,
-                    icon = Icons.Default.VisibilityOff,
-                    color = Color(0xFF5856D6)
-                ),
-                ToolItem(
-                    title = openWaTitle,
-                    description = openWaDesc,
-                    icon = Icons.Default.Chat,
-                    color = Color(0xFF25D366)
-                ),
-                ToolItem(
-                    title = textSplitterTitle,
-                    description = textSplitterDesc,
-                    icon = Icons.Default.ContentCut,
-                    color = Color(0xFFFF9500)
-                )
+                ToolItem(textImageTitle, textImageDesc, Icons.Default.AutoAwesome, Color(0xFF007AFF)),
+                ToolItem(emptyTextTitle, emptyTextDesc, Icons.Default.VisibilityOff, Color(0xFF5856D6)),
+                ToolItem(openWaTitle, openWaDesc, Icons.Default.Chat, Color(0xFF25D366)),
+                ToolItem(textSplitterTitle, textSplitterDesc, Icons.Default.ContentCut, Color(0xFFFF9500)),
+                ToolItem(videoSplitterTitle, videoSplitterDesc, Icons.Default.VideoLibrary, Color(0xFFFF3B30))
             )
         }
 
-        val onClicks = remember(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa, onNavigateToTextSplitter) {
-            listOf(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa, onNavigateToTextSplitter)
+        val onClicks = remember(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa, onNavigateToTextSplitter, onNavigateToVideoSplitter) {
+            listOf(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa, onNavigateToTextSplitter, onNavigateToVideoSplitter)
         }
 
         LazyVerticalGrid(
