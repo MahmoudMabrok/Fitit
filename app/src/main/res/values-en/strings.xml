@@ -85,4 +85,10 @@
     <string name="text_splitter_error_too_short">Text is too short, no need to split</string>
     <string name="text_splitter_chunk_label">Part</string>
     <string name="text_splitter_chars">chars</string>
+    <string name="text_splitter_feature_desc">Enter a long text, choose a chunk size, then tap Split. Each part preserves whole words — no mid-word cuts.</string>
+    <string name="text_splitter_preset_section_label">Available sizes</string>
+    <string name="text_splitter_preset_whatsapp_desc">Ideal for long WhatsApp messages</string>
+    <string name="text_splitter_preset_twitter_desc">Fits Twitter character limits</string>
+    <string name="text_splitter_preset_custom_desc">You choose the size</string>
+    <string name="text_splitter_chars_unit">chars</string>
 </resources>

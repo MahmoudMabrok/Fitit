@@ -85,4 +85,10 @@
     <string name="text_splitter_error_too_short">النص قصير جداً، لا حاجة للتقسيم</string>
     <string name="text_splitter_chunk_label">الجزء</string>
     <string name="text_splitter_chars">حرف</string>
+    <string name="text_splitter_feature_desc">أدخل نصاً طويلاً، اختر حجم القطعة، ثم اضغط تقسيم. كل جزء يُحفظ بكلمات كاملة دون قطع في المنتصف.</string>
+    <string name="text_splitter_preset_section_label">الأحجام المتاحة</string>
+    <string name="text_splitter_preset_whatsapp_desc">مثالي لرسائل واتساب الطويلة</string>
+    <string name="text_splitter_preset_twitter_desc">ملائم لتغريدات تويتر</string>
+    <string name="text_splitter_preset_custom_desc">حجم تختاره أنت</string>
+    <string name="text_splitter_chars_unit">حرف</string>
 </resources>

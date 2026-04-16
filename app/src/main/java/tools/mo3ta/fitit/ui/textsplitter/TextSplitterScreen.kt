@@ -133,6 +133,11 @@ fun TextSplitterScreen(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            // Feature description + preset legend
+            item {
+                FeatureDescription()
+            }
+
             // Segmented preset selector
             item {
                 PresetSelector(
@@ -215,6 +220,130 @@ fun TextSplitterScreen(
 
             item { Spacer(Modifier.height(24.dp)) }
         }
+    }
+}
+
+// ─── Feature description ─────────────────────────────────────────────────────
+
+@Composable
+private fun FeatureDescription() {
+    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+
+        // One-line feature summary
+        Text(
+            text = stringResource(R.string.text_splitter_feature_desc),
+            fontSize = 14.sp,
+            lineHeight = 21.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.Normal
+        )
+
+        // Preset legend
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = stringResource(R.string.text_splitter_preset_section_label),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                letterSpacing = 0.8.sp
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                PresetInfoPill(
+                    name  = stringResource(R.string.text_splitter_preset_whatsapp),
+                    limit = SplitPreset.WHATSAPP.fixedSize,
+                    desc  = stringResource(R.string.text_splitter_preset_whatsapp_desc),
+                    modifier = Modifier.weight(1f)
+                )
+                PresetInfoPill(
+                    name  = stringResource(R.string.text_splitter_preset_twitter),
+                    limit = SplitPreset.TWITTER.fixedSize,
+                    desc  = stringResource(R.string.text_splitter_preset_twitter_desc),
+                    modifier = Modifier.weight(1f)
+                )
+                PresetInfoPill(
+                    name  = stringResource(R.string.text_splitter_preset_custom),
+                    limit = null,
+                    desc  = stringResource(R.string.text_splitter_preset_custom_desc),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+
+        // Subtle divider
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f))
+        )
+    }
+}
+
+@Composable
+private fun PresetInfoPill(
+    name: String,
+    limit: Int?,
+    desc: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 10.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        // Preset name
+        Text(
+            text = name,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        // Char limit badge or "أنت تحدد"
+        if (limit != null) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(3.dp)
+            ) {
+                Text(
+                    text = limit.toString().map { c ->
+                        when (c) {
+                            '0' -> '٠'; '1' -> '١'; '2' -> '٢'; '3' -> '٣'; '4' -> '٤'
+                            '5' -> '٥'; '6' -> '٦'; '7' -> '٧'; '8' -> '٨'; '9' -> '٩'
+                            else -> c
+                        }
+                    }.joinToString(""),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = OrangeAccent
+                )
+                Text(
+                    text = stringResource(R.string.text_splitter_chars_unit),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = OrangeAccent.copy(alpha = 0.7f)
+                )
+            }
+        } else {
+            Text(
+                text = "✎",
+                fontSize = 15.sp,
+                color = OrangeAccent
+            )
+        }
+        // Short description
+        Text(
+            text = desc,
+            fontSize = 10.sp,
+            lineHeight = 14.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            fontWeight = FontWeight.Normal
+        )
     }
 }
 
