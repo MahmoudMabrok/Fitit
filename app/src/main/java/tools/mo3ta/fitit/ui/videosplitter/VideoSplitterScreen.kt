@@ -5,7 +5,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -119,12 +118,16 @@ fun VideoSplitterScreen(
             }
 
             item {
+                val maxDurationLabel = stringResource(R.string.video_splitter_max_duration)
+                val tapToChangeLabel = stringResource(R.string.video_splitter_tap_to_change)
                 PickVideoCard(
                     hasVideo = viewModel.selectedVideoUri != null,
                     durationMs = viewModel.videoDurationMs,
                     isDurationValid = viewModel.isDurationValid,
                     pickVideoLabel = stringResource(R.string.video_splitter_pick_video),
                     durationErrorLabel = stringResource(R.string.video_splitter_duration_error),
+                    maxDurationLabel = maxDurationLabel,
+                    tapToChangeLabel = tapToChangeLabel,
                     onPick = {
                         videoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly))
                     }
@@ -171,7 +174,7 @@ fun VideoSplitterScreen(
             if (viewModel.chunks.isNotEmpty()) {
                 item {
                     Text(
-                        text = "${viewModel.chunks.size} مقاطع",
+                        text = stringResource(R.string.video_splitter_chunks_count, viewModel.chunks.size),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onBackground
@@ -204,6 +207,8 @@ private fun PickVideoCard(
     isDurationValid: Boolean,
     pickVideoLabel: String,
     durationErrorLabel: String,
+    maxDurationLabel: String,
+    tapToChangeLabel: String,
     onPick: () -> Unit
 ) {
     Card(
@@ -238,7 +243,7 @@ private fun PickVideoCard(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "الحد الأقصى ٥ دقائق",
+                        text = maxDurationLabel,
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -257,7 +262,7 @@ private fun PickVideoCard(
                         )
                     } else {
                         Text(
-                            text = "اضغط لتغيير الفيديو",
+                            text = tapToChangeLabel,
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

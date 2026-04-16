@@ -21,6 +21,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import tools.mo3ta.fitit.R
 import tools.mo3ta.fitit.analytics.AnalyticsManager
 import java.io.File
 import java.io.IOException
@@ -132,7 +133,7 @@ class VideoSplitterViewModel(application: Application) : AndroidViewModel(applic
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    errorMessage = e.message ?: "فشل الحفظ"
+                    errorMessage = e.message ?: getApplication<Application>().getString(R.string.video_splitter_error_generic)
                 }
             }
         }

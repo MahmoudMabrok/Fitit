@@ -102,7 +102,10 @@
     <string name="video_splitter_split_button">تقسيم</string>
     <string name="video_splitter_save">حفظ</string>
     <string name="video_splitter_share">مشاركة</string>
-    <string name="video_splitter_saved">تم الحفظ ✓</string>
+    <string name="video_splitter_saved">تم الحفظ</string>
     <string name="video_splitter_chunk_label">مقطع</string>
     <string name="video_splitter_error_generic">فشل تقسيم الفيديو، حاول مرة أخرى</string>
+    <string name="video_splitter_max_duration">الحد الأقصى ٥ دقائق</string>
+    <string name="video_splitter_tap_to_change">اضغط لتغيير الفيديو</string>
+    <string name="video_splitter_chunks_count">%d مقاطع</string>
 </resources>
