@@ -1,0 +1,60 @@
+package tools.mo3ta.fitit.ui.videosplitter
+
+import org.junit.Assert.*
+import org.junit.Test
+
+class VideoChunkMathTest {
+
+    @Test
+    fun `calculateChunks returns 2 chunks for 60s video`() {
+        val chunks = calculateChunks(60_000L)
+        assertEquals(2, chunks.size)
+    }
+
+    @Test
+    fun `calculateChunks first chunk starts at 0 and ends at 32s`() {
+        val chunks = calculateChunks(60_000L)
+        assertEquals(0L, chunks[0].startMs)
+        assertEquals(32_000L, chunks[0].endMs)
+    }
+
+    @Test
+    fun `calculateChunks second chunk starts at 30s`() {
+        val chunks = calculateChunks(60_000L)
+        assertEquals(30_000L, chunks[1].startMs)
+    }
+
+    @Test
+    fun `calculateChunks last chunk end clamped to video duration`() {
+        val chunks = calculateChunks(55_000L)
+        assertEquals(55_000L, chunks.last().endMs)
+    }
+
+    @Test
+    fun `calculateChunks returns 10 chunks for 300s video`() {
+        val chunks = calculateChunks(300_000L)
+        assertEquals(10, chunks.size)
+    }
+
+    @Test
+    fun `calculateChunks single chunk for video under 30s`() {
+        val chunks = calculateChunks(20_000L)
+        assertEquals(1, chunks.size)
+        assertEquals(0L, chunks[0].startMs)
+        assertEquals(20_000L, chunks[0].endMs)
+    }
+
+    @Test
+    fun `calculateChunks chunk indices start at 1`() {
+        val chunks = calculateChunks(60_000L)
+        assertEquals(1, chunks[0].index)
+        assertEquals(2, chunks[1].index)
+    }
+
+    @Test
+    fun `calculateChunks consecutive chunks overlap by 2s`() {
+        val chunks = calculateChunks(90_000L)
+        // chunk[0].endMs - chunk[1].startMs = 32000 - 30000 = 2000
+        assertEquals(2_000L, chunks[0].endMs - chunks[1].startMs)
+    }
+}
