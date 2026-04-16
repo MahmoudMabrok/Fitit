@@ -35,6 +35,13 @@ object AnalyticsManager {
 
     fun trackNotificationsSettingsOpened() = log("zaki_settings_notifications_opened")
 
+    fun trackVideoSplitStarted(durationMs: Long) =
+        log("zaki_video_split_started", "duration_ms" to durationMs.toString())
+
+    fun trackVideoChunkSaved() = log("zaki_video_chunk_saved")
+
+    fun trackVideoChunkShared() = log("zaki_video_chunk_shared")
+
     private fun log(name: String, vararg params: Pair<String, String>) {
         val bundle = Bundle()
         params.forEach { (key, value) -> bundle.putString(key, value) }
