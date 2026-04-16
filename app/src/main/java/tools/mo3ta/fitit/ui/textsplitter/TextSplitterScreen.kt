@@ -133,14 +133,9 @@ fun TextSplitterScreen(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Feature description + preset legend
+            // Feature description + selectable preset pills
             item {
-                FeatureDescription()
-            }
-
-            // Segmented preset selector
-            item {
-                PresetSelector(
+                FeatureDescription(
                     selected = viewModel.selectedPreset,
                     onSelect = { viewModel.selectedPreset = it }
                 )
@@ -226,7 +221,10 @@ fun TextSplitterScreen(
 // ─── Feature description ─────────────────────────────────────────────────────
 
 @Composable
-private fun FeatureDescription() {
+private fun FeatureDescription(
+    selected: SplitPreset,
+    onSelect: (SplitPreset) -> Unit
+) {
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
 
         // One-line feature summary
@@ -238,7 +236,7 @@ private fun FeatureDescription() {
             fontWeight = FontWeight.Normal
         )
 
-        // Preset legend
+        // Selectable preset pills
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
                 text = stringResource(R.string.text_splitter_preset_section_label),
@@ -253,21 +251,27 @@ private fun FeatureDescription() {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 PresetInfoPill(
-                    name  = stringResource(R.string.text_splitter_preset_whatsapp),
-                    limit = SplitPreset.WHATSAPP.fixedSize,
-                    desc  = stringResource(R.string.text_splitter_preset_whatsapp_desc),
+                    name     = stringResource(R.string.text_splitter_preset_whatsapp),
+                    limit    = SplitPreset.WHATSAPP.fixedSize,
+                    desc     = stringResource(R.string.text_splitter_preset_whatsapp_desc),
+                    selected = selected == SplitPreset.WHATSAPP,
+                    onClick  = { onSelect(SplitPreset.WHATSAPP) },
                     modifier = Modifier.weight(1f)
                 )
                 PresetInfoPill(
-                    name  = stringResource(R.string.text_splitter_preset_twitter),
-                    limit = SplitPreset.TWITTER.fixedSize,
-                    desc  = stringResource(R.string.text_splitter_preset_twitter_desc),
+                    name     = stringResource(R.string.text_splitter_preset_twitter),
+                    limit    = SplitPreset.TWITTER.fixedSize,
+                    desc     = stringResource(R.string.text_splitter_preset_twitter_desc),
+                    selected = selected == SplitPreset.TWITTER,
+                    onClick  = { onSelect(SplitPreset.TWITTER) },
                     modifier = Modifier.weight(1f)
                 )
                 PresetInfoPill(
-                    name  = stringResource(R.string.text_splitter_preset_custom),
-                    limit = null,
-                    desc  = stringResource(R.string.text_splitter_preset_custom_desc),
+                    name     = stringResource(R.string.text_splitter_preset_custom),
+                    limit    = null,
+                    desc     = stringResource(R.string.text_splitter_preset_custom_desc),
+                    selected = selected == SplitPreset.CUSTOM,
+                    onClick  = { onSelect(SplitPreset.CUSTOM) },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -288,36 +292,64 @@ private fun PresetInfoPill(
     name: String,
     limit: Int?,
     desc: String,
+    selected: Boolean,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val bgColor by animateColorAsState(
+        targetValue = if (selected) OrangeAccent.copy(alpha = 0.12f)
+                      else MaterialTheme.colorScheme.surface,
+        animationSpec = tween(200),
+        label = "pill_bg_$name"
+    )
+    val borderColor by animateColorAsState(
+        targetValue = if (selected) OrangeAccent else Color.Transparent,
+        animationSpec = tween(200),
+        label = "pill_border_$name"
+    )
+    val nameColor by animateColorAsState(
+        targetValue = if (selected) OrangeAccent else MaterialTheme.colorScheme.onSurface,
+        animationSpec = tween(200),
+        label = "pill_name_$name"
+    )
+
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .background(bgColor)
+            .then(
+                if (selected) Modifier.drawBehind {
+                    // 2dp border drawn manually to animate cleanly
+                    val stroke = 1.5.dp.toPx()
+                    drawRoundRect(
+                        color = OrangeAccent,
+                        size = androidx.compose.ui.geometry.Size(size.width, size.height),
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(12.dp.toPx()),
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(stroke)
+                    )
+                } else Modifier
+            )
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick
+            )
             .padding(horizontal = 10.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        // Preset name
         Text(
             text = name,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = nameColor
         )
-        // Char limit badge or "أنت تحدد"
         if (limit != null) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(3.dp)
             ) {
                 Text(
-                    text = limit.toString().map { c ->
-                        when (c) {
-                            '0' -> '٠'; '1' -> '١'; '2' -> '٢'; '3' -> '٣'; '4' -> '٤'
-                            '5' -> '٥'; '6' -> '٦'; '7' -> '٧'; '8' -> '٨'; '9' -> '٩'
-                            else -> c
-                        }
-                    }.joinToString(""),
+                    text = limit!!.toArabicNumeral(),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = OrangeAccent
@@ -330,84 +362,14 @@ private fun PresetInfoPill(
                 )
             }
         } else {
-            Text(
-                text = "✎",
-                fontSize = 15.sp,
-                color = OrangeAccent
-            )
+            Text("✎", fontSize = 15.sp, color = OrangeAccent)
         }
-        // Short description
         Text(
             text = desc,
             fontSize = 10.sp,
             lineHeight = 14.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-            fontWeight = FontWeight.Normal
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
         )
-    }
-}
-
-// ─── Segmented control ───────────────────────────────────────────────────────
-
-@Composable
-private fun PresetSelector(
-    selected: SplitPreset,
-    onSelect: (SplitPreset) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(4.dp)
-    ) {
-        SplitPreset.entries.forEach { preset ->
-            val isSelected = preset == selected
-            val bgColor by animateColorAsState(
-                targetValue = if (isSelected) OrangeAccent else Color.Transparent,
-                animationSpec = tween(220),
-                label = "seg_bg_${preset.name}"
-            )
-            val textColor by animateColorAsState(
-                targetValue = if (isSelected) Color.White
-                              else MaterialTheme.colorScheme.onSurfaceVariant,
-                animationSpec = tween(220),
-                label = "seg_txt_${preset.name}"
-            )
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(bgColor)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) { onSelect(preset) }
-                    .padding(vertical = 10.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = when (preset) {
-                            SplitPreset.WHATSAPP -> stringResource(R.string.text_splitter_preset_whatsapp)
-                            SplitPreset.TWITTER  -> stringResource(R.string.text_splitter_preset_twitter)
-                            SplitPreset.CUSTOM   -> stringResource(R.string.text_splitter_preset_custom)
-                        },
-                        fontSize = 13.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                        color = textColor
-                    )
-                    if (preset.fixedSize != null) {
-                        Text(
-                            text = preset.fixedSize.toString(),
-                            fontSize = 10.sp,
-                            color = textColor.copy(alpha = 0.75f),
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                }
-            }
-        }
     }
 }
 
