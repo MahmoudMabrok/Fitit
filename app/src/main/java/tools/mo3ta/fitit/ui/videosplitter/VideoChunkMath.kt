@@ -9,6 +9,7 @@ const val MAX_DURATION_MS = 300_000L   // 5 minutes
 data class ChunkRange(val startMs: Long, val endMs: Long, val index: Int)
 
 fun calculateChunks(durationMs: Long): List<ChunkRange> {
+    require(durationMs > 0) { "durationMs must be positive, got $durationMs" }
     val count = ceil(durationMs.toDouble() / CHUNK_STEP_MS).toInt().coerceAtLeast(1)
     return (0 until count).map { i ->
         ChunkRange(
@@ -16,5 +17,5 @@ fun calculateChunks(durationMs: Long): List<ChunkRange> {
             endMs = minOf(i * CHUNK_STEP_MS + CHUNK_DURATION_MS, durationMs),
             index = i + 1
         )
-    }
+    }.filter { it.endMs > it.startMs }
 }

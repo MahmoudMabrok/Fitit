@@ -57,4 +57,22 @@ class VideoChunkMathTest {
         // chunk[0].endMs - chunk[1].startMs = 32000 - 30000 = 2000
         assertEquals(2_000L, chunks[0].endMs - chunks[1].startMs)
     }
+
+    @Test
+    fun `calculateChunks throws for zero duration`() {
+        try {
+            calculateChunks(0L)
+            fail("Expected IllegalArgumentException")
+        } catch (e: IllegalArgumentException) {
+            // expected
+        }
+    }
+
+    @Test
+    fun `calculateChunks does not produce zero length chunks`() {
+        val chunks = calculateChunks(32_000L)
+        chunks.forEach { chunk ->
+            assertTrue("Chunk ${chunk.index} has zero or negative length", chunk.endMs > chunk.startMs)
+        }
+    }
 }
