@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import tools.mo3ta.fitit.analytics.AnalyticsManager
 import java.io.File
+import java.io.IOException
 import java.nio.ByteBuffer
 
 data class VideoChunk(
@@ -80,20 +81,16 @@ class VideoSplitterViewModel(application: Application) : AndroidViewModel(applic
             try {
                 val outputDir = File(context.cacheDir, "video_chunks").also { it.mkdirs() }
                 val ranges = calculateChunks(videoDurationMs)
-                val result = mutableListOf<VideoChunk>()
-
-                withContext(Dispatchers.IO) {
-                    ranges.forEachIndexed { i, range ->
+                chunks = withContext(Dispatchers.IO) {
+                    ranges.mapIndexed { i, range ->
                         val outputFile = File(outputDir, "chunk_${range.index}.mp4")
                         extractSegment(context, uri, range.startMs, range.endMs, outputFile)
-                        result.add(VideoChunk(outputFile, range.startMs, range.endMs, range.index))
                         withContext(Dispatchers.Main) {
                             progress = (i + 1).toFloat() / ranges.size
                         }
+                        VideoChunk(outputFile, range.startMs, range.endMs, range.index)
                     }
                 }
-
-                chunks = result
             } catch (e: Exception) {
                 errorMessage = e.message
             } finally {
@@ -113,12 +110,10 @@ class VideoSplitterViewModel(application: Application) : AndroidViewModel(applic
                     }
                     val insertUri = context.contentResolver.insert(
                         MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values
-                    )
-                    insertUri?.let { dest ->
-                        context.contentResolver.openOutputStream(dest)?.use { os ->
-                            chunk.file.inputStream().use { it.copyTo(os) }
-                        }
-                    }
+                    ) ?: throw IOException("Failed to create MediaStore entry")
+                    context.contentResolver.openOutputStream(insertUri)?.use { os ->
+                        chunk.file.inputStream().use { it.copyTo(os) }
+                    } ?: throw IOException("Failed to open output stream")
                 } else {
                     val dir = File(
                         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES),
@@ -135,7 +130,11 @@ class VideoSplitterViewModel(application: Application) : AndroidViewModel(applic
                     savedChunkIndices = savedChunkIndices + chunk.index
                     try { AnalyticsManager.trackVideoChunkSaved() } catch (_: Exception) {}
                 }
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    errorMessage = e.message ?: "فشل الحفظ"
+                }
+            }
         }
     }
 
@@ -162,46 +161,51 @@ private fun extractSegment(
     output: File
 ) {
     val extractor = MediaExtractor()
-    extractor.setDataSource(context, uri, null)
+    try {
+        extractor.setDataSource(context, uri, null)
 
-    val muxer = MediaMuxer(output.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+        val muxer = MediaMuxer(output.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+        try {
+            val trackMap = mutableMapOf<Int, Int>()
+            for (i in 0 until extractor.trackCount) {
+                val format = extractor.getTrackFormat(i)
+                val mime = format.getString(MediaFormat.KEY_MIME) ?: continue
+                if (mime.startsWith("video/") || mime.startsWith("audio/")) {
+                    trackMap[i] = muxer.addTrack(format)
+                    extractor.selectTrack(i)
+                }
+            }
 
-    val trackMap = mutableMapOf<Int, Int>()
-    for (i in 0 until extractor.trackCount) {
-        val format = extractor.getTrackFormat(i)
-        val mime = format.getString(MediaFormat.KEY_MIME) ?: continue
-        if (mime.startsWith("video/") || mime.startsWith("audio/")) {
-            trackMap[i] = muxer.addTrack(format)
-            extractor.selectTrack(i)
+            muxer.start()
+            extractor.seekTo(startMs * 1000L, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
+
+            val buffer = ByteBuffer.allocate(1 * 1024 * 1024)
+            val bufferInfo = MediaCodec.BufferInfo()
+
+            while (true) {
+                val trackIndex = extractor.sampleTrackIndex
+                if (trackIndex < 0) break
+                val muxerTrack = trackMap[trackIndex] ?: run { extractor.advance(); continue }
+
+                val sampleTimeUs = extractor.sampleTime
+                if (sampleTimeUs > endMs * 1000L) break
+
+                bufferInfo.size = extractor.readSampleData(buffer, 0)
+                if (bufferInfo.size < 0) break
+
+                bufferInfo.offset = 0
+                bufferInfo.presentationTimeUs = sampleTimeUs - (startMs * 1000L)
+                bufferInfo.flags = extractor.sampleFlags
+
+                muxer.writeSampleData(muxerTrack, buffer, bufferInfo)
+                extractor.advance()
+            }
+
+            muxer.stop()
+        } finally {
+            muxer.release()
         }
+    } finally {
+        extractor.release()
     }
-
-    muxer.start()
-    extractor.seekTo(startMs * 1000L, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
-
-    val buffer = ByteBuffer.allocate(1 * 1024 * 1024)
-    val bufferInfo = MediaCodec.BufferInfo()
-
-    while (true) {
-        val trackIndex = extractor.sampleTrackIndex
-        if (trackIndex < 0) break
-        val muxerTrack = trackMap[trackIndex] ?: run { extractor.advance(); continue }
-
-        val sampleTimeUs = extractor.sampleTime
-        if (sampleTimeUs > endMs * 1000L) break
-
-        bufferInfo.size = extractor.readSampleData(buffer, 0)
-        if (bufferInfo.size < 0) break
-
-        bufferInfo.offset = 0
-        bufferInfo.presentationTimeUs = sampleTimeUs - (startMs * 1000L)
-        bufferInfo.flags = extractor.sampleFlags
-
-        muxer.writeSampleData(muxerTrack, buffer, bufferInfo)
-        extractor.advance()
-    }
-
-    muxer.stop()
-    muxer.release()
-    extractor.release()
 }
