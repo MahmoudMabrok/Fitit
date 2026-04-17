@@ -22,8 +22,8 @@ fun calculateChunks(durationMs: Long): List<ChunkRange> {
 
 fun formatFileSize(bytes: Long): String {
     return if (bytes < 1_048_576L) {
-        "%.1f KB".format(bytes / 1024.0)
+        String.format(java.util.Locale.US, "%.1f KB", bytes / 1024.0)
     } else {
-        "%.1f MB".format(bytes / 1_048_576.0)
+        String.format(java.util.Locale.US, "%.1f MB", bytes / 1_048_576.0)
     }
 }
