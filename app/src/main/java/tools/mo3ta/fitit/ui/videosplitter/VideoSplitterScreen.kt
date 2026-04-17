@@ -92,8 +92,7 @@ fun VideoSplitterScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back),
-                            tint = RedAccent
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 },
