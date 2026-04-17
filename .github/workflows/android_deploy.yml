@@ -49,7 +49,7 @@ jobs:
 
       - name: Decode keystore
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | tr -d ' \n' | base64 --decode > app/release.keystore
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | tr -d ' \n\r' | base64 --decode > app/release.keystore
 
       - name: Validate keystore
         env:
