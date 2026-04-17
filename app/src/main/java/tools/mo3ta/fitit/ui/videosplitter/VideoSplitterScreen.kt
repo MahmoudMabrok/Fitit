@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.VideoLibrary
@@ -124,6 +125,7 @@ fun VideoSplitterScreen(
                     hasVideo = viewModel.selectedVideoUri != null,
                     durationMs = viewModel.videoDurationMs,
                     isDurationValid = viewModel.isDurationValid,
+                    videoFileSizeBytes = viewModel.videoFileSizeBytes,
                     pickVideoLabel = stringResource(R.string.video_splitter_pick_video),
                     durationErrorLabel = stringResource(R.string.video_splitter_duration_error),
                     maxDurationLabel = maxDurationLabel,
@@ -188,9 +190,12 @@ fun VideoSplitterScreen(
                         saveLabel = stringResource(R.string.video_splitter_save),
                         savedLabel = stringResource(R.string.video_splitter_saved),
                         shareLabel = stringResource(R.string.video_splitter_share),
+                        previewLabel = stringResource(R.string.video_splitter_preview),
                         chunkLabel = stringResource(R.string.video_splitter_chunk_label),
+                        fileSizeBytes = chunk.fileSizeBytes,
                         onSave = { viewModel.saveChunk(context, chunk) },
-                        onShare = { viewModel.shareChunk(context, chunk) }
+                        onShare = { viewModel.shareChunk(context, chunk) },
+                        onPreview = { viewModel.previewChunk(context, chunk) }
                     )
                 }
             }
@@ -205,6 +210,7 @@ private fun PickVideoCard(
     hasVideo: Boolean,
     durationMs: Long,
     isDurationValid: Boolean,
+    videoFileSizeBytes: Long,
     pickVideoLabel: String,
     durationErrorLabel: String,
     maxDurationLabel: String,
@@ -266,6 +272,13 @@ private fun PickVideoCard(
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        if (videoFileSizeBytes > 0L) {
+                            Text(
+                                text = formatFileSize(videoFileSizeBytes),
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            )
+                        }
                     }
                 }
             }
@@ -327,9 +340,12 @@ private fun VideoChunkCard(
     saveLabel: String,
     savedLabel: String,
     shareLabel: String,
+    previewLabel: String,
     chunkLabel: String,
+    fileSizeBytes: Long,
     onSave: () -> Unit,
-    onShare: () -> Unit
+    onShare: () -> Unit,
+    onPreview: () -> Unit
 ) {
     val animatedFill by animateFloatAsState(
         targetValue = (chunk.endMs - chunk.startMs).toFloat() / CHUNK_DURATION_MS.toFloat(),
@@ -367,14 +383,23 @@ private fun VideoChunkCard(
                             color = Color.White
                         )
                     }
-                    Text(
-                        text = "$chunkLabel ${chunk.index}  ·  ${chunk.startMs.toTimeLabel()} – ${chunk.endMs.toTimeLabel()}",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Column {
+                        Text(
+                            text = "$chunkLabel ${chunk.index}  ·  ${chunk.startMs.toTimeLabel()} – ${chunk.endMs.toTimeLabel()}",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        if (fileSizeBytes > 0L) {
+                            Text(
+                                text = formatFileSize(fileSizeBytes),
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
                 }
             }
 
@@ -387,6 +412,19 @@ private fun VideoChunkCard(
                 color = RedAccent,
                 trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
             )
+
+            // Preview button — full width
+            OutlinedButton(
+                onClick = onPreview,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = RedAccent),
+                border = BorderStroke(1.5.dp, RedAccent)
+            ) {
+                Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(15.dp))
+                Spacer(Modifier.width(4.dp))
+                Text(previewLabel, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

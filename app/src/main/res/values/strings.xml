@@ -108,4 +108,5 @@
     <string name="video_splitter_max_duration">الحد الأقصى ٥ دقائق</string>
     <string name="video_splitter_tap_to_change">اضغط لتغيير الفيديو</string>
     <string name="video_splitter_chunks_count">%d مقاطع</string>
+    <string name="video_splitter_preview">معاينة</string>
 </resources>
