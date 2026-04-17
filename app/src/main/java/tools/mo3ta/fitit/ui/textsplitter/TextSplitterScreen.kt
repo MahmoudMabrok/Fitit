@@ -115,6 +115,7 @@ fun TextSplitterScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.back),
+                            tint = OrangeAccent
                         )
                     }
                 },

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Zaki</string>
+
+    <!-- Home Screen -->
+    <string name="home_title">Content Creator Toolkit</string>
+    <string name="tool_text_image">Text on Image</string>
+    <string name="tool_text_image_desc">Place any text on a high-quality image with custom designs</string>
+    <string name="tool_empty_text">Invisible Text</string>
+    <string name="tool_empty_text_desc">Create invisible text for social media apps</string>
+    <string name="settings">Settings</string>
+    <string name="settings_description">App settings</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="appearance">Appearance</string>
+    <string name="theme">Theme</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_system">System</string>
+    <string name="language">Language</string>
+    <string name="language_english">English</string>
+    <string name="language_arabic">Arabic</string>
+    <string name="language_restart_note">Changing language will automatically restart the screen</string>
+    <string name="notifications">Notifications</string>
+    <string name="notifications_enable">Enable Notifications</string>
+    <string name="notifications_system_settings_hint">Tap to open system settings</string>
+    <string name="about">About</string>
+    <string name="app_name_label">App Name</string>
+    <string name="version">Version</string>
+    <string name="back">Back</string>
+
+    <!-- Onboarding Screen -->
+    <string name="onboarding_title">Welcome to Zaki</string>
+    <string name="onboarding_desc">Your companion for text processing and more.</string>
+    <string name="get_started">Get Started</string>
+
+    <!-- Invisible Text Screen -->
+    <string name="invisible_text_title">Invisible Text</string>
+    <string name="char_type">Character Type</string>
+    <string name="length">Length</string>
+    <string name="copy_to_clipboard">Copy to Clipboard</string>
+    <string name="copied_toast">Copied! Paste it anywhere</string>
+
+    <!-- Open WA Screen -->
+    <string name="open_wa_title">Open in WhatsApp</string>
+    <string name="direct_message">Direct Message</string>
+    <string name="direct_message_desc">Enter a number without saving it to contacts</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="phone_hint">Example: +20 123 456 7890</string>
+    <string name="phone_desc">Include your country code (e.g. +20 for Egypt). Spaces, hyphens, and (+) are allowed; they will be cleaned automatically.</string>
+    <string name="open_whatsapp">Open WhatsApp</string>
+
+    <!-- Text Image Screen -->
+    <string name="text_image_title">Text on Image</string>
+    <string name="content">Content</string>
+    <string name="enter_text_here">Enter your text here…</string>
+    <string name="background">Background</string>
+    <string name="pick_image">Pick Image</string>
+    <string name="text_style">Text Style</string>
+    <string name="text_color">Text Color</string>
+    <string name="alignment">Alignment</string>
+    <string name="font_weight">Font Weight</string>
+    <string name="aspect_ratio">Aspect Ratio</string>
+    <string name="padding_label">Padding: %1$ddp</string>
+    <string name="export_image">Export High-Quality Image</string>
+    <string name="saved_to_gallery">Saved to gallery!</string>
+    <string name="error_saving">Error: %1$s</string>
+    <string name="text_preview_placeholder">Your text will appear here</string>
+
+    <!-- Navigation -->
+    <string name="navigate_to_settings">Go to Settings</string>
+
+    <!-- Text Splitter Screen -->
+    <string name="tool_text_splitter">Text Splitter</string>
+    <string name="tool_text_splitter_desc">Split long text into chunks suitable for posting</string>
+    <string name="text_splitter_title">Text Splitter</string>
+    <string name="text_splitter_preset_whatsapp">WhatsApp</string>
+    <string name="text_splitter_preset_twitter">Twitter</string>
+    <string name="text_splitter_preset_custom">Custom</string>
+    <string name="text_splitter_custom_size_label">Maximum characters</string>
+    <string name="text_splitter_input_hint">Enter text here…</string>
+    <string name="text_splitter_split_button">Split</string>
+    <string name="text_splitter_copy_all">Copy All</string>
+    <string name="text_splitter_error_too_short">Text is too short, no need to split</string>
+    <string name="text_splitter_chunk_label">Part</string>
+    <string name="text_splitter_chars">chars</string>
+    <string name="text_splitter_feature_desc">Enter a long text, choose a chunk size, then tap Split. Each part preserves whole words — no mid-word cuts.</string>
+    <string name="text_splitter_preset_section_label">Available sizes</string>
+    <string name="text_splitter_preset_whatsapp_desc">Ideal for long WhatsApp messages</string>
+    <string name="text_splitter_preset_twitter_desc">Fits Twitter character limits</string>
+    <string name="text_splitter_preset_custom_desc">You choose the size</string>
+    <string name="text_splitter_chars_unit">chars</string>
+</resources>

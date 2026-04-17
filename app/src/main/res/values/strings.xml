@@ -70,4 +70,46 @@
 
     <!-- Navigation -->
     <string name="navigate_to_settings">الانتقال إلى الإعدادات</string>
+
+    <!-- Text Splitter Screen -->
+    <string name="tool_text_splitter">تقسيم النص</string>
+    <string name="tool_text_splitter_desc">قسّم النص الطويل إلى أجزاء مناسبة للنشر</string>
+    <string name="text_splitter_title">تقسيم النص</string>
+    <string name="text_splitter_preset_whatsapp">واتساب</string>
+    <string name="text_splitter_preset_twitter">تويتر</string>
+    <string name="text_splitter_preset_custom">مخصص</string>
+    <string name="text_splitter_custom_size_label">الحد الأقصى للحروف</string>
+    <string name="text_splitter_input_hint">أدخل النص هنا...</string>
+    <string name="text_splitter_split_button">تقسيم</string>
+    <string name="text_splitter_copy_all">نسخ الكل</string>
+    <string name="text_splitter_error_too_short">النص قصير جداً، لا حاجة للتقسيم</string>
+    <string name="text_splitter_chunk_label">الجزء</string>
+    <string name="text_splitter_chars">حرف</string>
+    <string name="text_splitter_feature_desc">أدخل نصاً طويلاً، اختر حجم القطعة، ثم اضغط تقسيم. كل جزء يُحفظ بكلمات كاملة دون قطع في المنتصف.</string>
+    <string name="text_splitter_preset_section_label">الأحجام المتاحة</string>
+    <string name="text_splitter_preset_whatsapp_desc">مثالي لرسائل واتساب الطويلة</string>
+    <string name="text_splitter_preset_twitter_desc">ملائم لتغريدات تويتر</string>
+    <string name="text_splitter_preset_custom_desc">حجم تختاره أنت</string>
+    <string name="text_splitter_chars_unit">حرف</string>
+
+    <!-- Video Splitter Screen -->
+    <string name="tool_video_splitter">تقسيم الفيديو</string>
+    <string name="tool_video_splitter_desc">قسّم الفيديو إلى مقاطع قصيرة مناسبة للنشر</string>
+    <string name="video_splitter_title">تقسيم الفيديو</string>
+    <string name="video_splitter_feature_desc">اختر فيديو بحد أقصى ٥ دقائق، سيتم تقسيمه إلى مقاطع مدتها ٣٠ ثانية مع تداخل ثانيتين بين كل مقطع.</string>
+    <string name="video_splitter_pick_video">اختر فيديو من المعرض</string>
+    <string name="video_splitter_duration_error">مدة الفيديو تتجاوز ٥ دقائق</string>
+    <string name="video_splitter_split_button">تقسيم</string>
+    <string name="video_splitter_save">حفظ</string>
+    <string name="video_splitter_share">مشاركة</string>
+    <string name="video_splitter_saved">تم الحفظ</string>
+    <string name="video_splitter_chunk_label">مقطع</string>
+    <string name="video_splitter_error_generic">فشل تقسيم الفيديو، حاول مرة أخرى</string>
+    <string name="video_splitter_max_duration">الحد الأقصى ٥ دقائق</string>
+    <string name="video_splitter_tap_to_change">اضغط لتغيير الفيديو</string>
+    <string name="video_splitter_chunks_count">%d مقاطع</string>
+    <string name="video_splitter_preview">معاينة</string>
+    <string name="video_splitter_no_player">لا يوجد تطبيق لتشغيل الفيديو</string>
+    <string name="video_splitter_chunk_size_label">مدة المقطع</string>
+    <string name="video_splitter_seconds_unit">ث</string>
 </resources>

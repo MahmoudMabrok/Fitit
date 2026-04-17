@@ -24,7 +24,6 @@ import tools.mo3ta.fitit.R
 import tools.mo3ta.fitit.analytics.AnalyticsManager
 import tools.mo3ta.fitit.data.ThemeMode
 import tools.mo3ta.fitit.ui.theme.PrimaryBlue
-import tools.mo3ta.fitit.ui.theme.SurfaceVariant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,7 +83,7 @@ fun SettingsScreen(
                     .fillMaxWidth()
                     .padding(bottom = 20.dp),
                 shape = RoundedCornerShape(14.dp),
-                color = SurfaceVariant
+                color = MaterialTheme.colorScheme.surfaceContainerHigh
             ) {
                 Column {
                     // Theme Row
@@ -148,7 +147,7 @@ fun SettingsScreen(
                     .fillMaxWidth()
                     .padding(bottom = 20.dp),
                 shape = RoundedCornerShape(14.dp),
-                color = SurfaceVariant
+                color = MaterialTheme.colorScheme.surfaceContainerHigh
             ) {
                 Row(
                     modifier = Modifier
@@ -183,6 +182,43 @@ fun SettingsScreen(
                             viewModel.openNotificationSettings(context)
                         },
                         modifier = Modifier.padding(start = 14.dp)
+                    )
+                }
+            }
+
+            // About Section
+            SectionHeader(stringResource(R.string.about))
+
+            val versionName = remember {
+                try {
+                    context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: ""
+                } catch (_: PackageManager.NameNotFoundException) { "" }
+            }
+
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 20.dp),
+                shape = RoundedCornerShape(14.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        stringResource(R.string.version),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        versionName,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 14.sp
                     )
                 }
             }

@@ -6,8 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.*
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -21,6 +19,8 @@ import tools.mo3ta.fitit.ui.openwa.OpenWaScreen
 import tools.mo3ta.fitit.ui.settings.SettingsScreen
 import tools.mo3ta.fitit.ui.settings.SettingsViewModel
 import tools.mo3ta.fitit.ui.textimage.TextImageScreen
+import tools.mo3ta.fitit.ui.textsplitter.TextSplitterScreen
+import tools.mo3ta.fitit.ui.videosplitter.VideoSplitterScreen
 import tools.mo3ta.fitit.ui.theme.FititTheme
 
 class MainActivity : ComponentActivity() {
@@ -31,11 +31,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         AnalyticsManager.trackAppOpen()
         setContent {
-            // Force RTL for the whole app as it's forced Arabic
-            // Default strings in strings.xml are now in Arabic.
-            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-                FitItApp()
-            }
+            FitItApp()
         }
     }
 
@@ -69,6 +65,8 @@ class MainActivity : ComponentActivity() {
                         onNavigateToTextImage = { navController.navigate("text_image") },
                         onNavigateToEmptyText = { navController.navigate("empty_text") },
                         onNavigateToOpenWa = { navController.navigate("open_wa") },
+                        onNavigateToTextSplitter = { navController.navigate("text_splitter") },
+                        onNavigateToVideoSplitter = { navController.navigate("video_splitter") },
                         onNavigateToSettings = { navController.navigate("settings") }
                     )
                 }
@@ -83,6 +81,12 @@ class MainActivity : ComponentActivity() {
                 }
                 composable("settings") {
                     SettingsScreen(onBack = { navController.popBackStack() })
+                }
+                composable("text_splitter") {
+                    TextSplitterScreen(onBack = { navController.popBackStack() })
+                }
+                composable("video_splitter") {
+                    VideoSplitterScreen(onBack = { navController.popBackStack() })
                 }
             }
         }

@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import android.Manifest
 import android.os.Build
@@ -14,10 +13,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.ContentCut
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import tools.mo3ta.fitit.analytics.AnalyticsManager
@@ -37,6 +40,8 @@ fun HomeScreen(
     onNavigateToTextImage: () -> Unit,
     onNavigateToEmptyText: () -> Unit,
     onNavigateToOpenWa: () -> Unit,
+    onNavigateToTextSplitter: () -> Unit,
+    onNavigateToVideoSplitter: () -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
     // Track screen view
@@ -44,14 +49,15 @@ fun HomeScreen(
         AnalyticsManager.trackScreenView("home")
     }
 
+    // Launcher must be outside conditional — Compose rules prohibit composable calls inside if
+    val notificationLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { /* Permission result ignored */ }
+
     // Request notification permission once after onboarding (API 33+)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        val launcher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.RequestPermission()
-        ) { /* Permission result ignored */ }
-
         LaunchedEffect(Unit) {
-            launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
 
@@ -73,44 +79,44 @@ fun HomeScreen(
                         )
                     }
                 },
-                // TODO: Uncomment when settings screen is ready
-                // actions = {
-                //     IconButton(onClick = onNavigateToSettings) {
-                //         Icon(
-                //             Icons.Default.Settings,
-                //             contentDescription = stringResource(R.string.settings),
-                //             tint = MaterialTheme.colorScheme.onBackground
-                //         )
-                //     }
-                // },
+                actions = {
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.settings),
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        val tools = listOf(
-            ToolItem(
-                title = stringResource(R.string.tool_text_image),
-                description = stringResource(R.string.tool_text_image_desc),
-                icon = Icons.Default.AutoAwesome,
-                color = Color(0xFF007AFF),
-                onClick = onNavigateToTextImage
-            ),
-            ToolItem(
-                title = stringResource(R.string.tool_empty_text),
-                description = stringResource(R.string.tool_empty_text_desc),
-                icon = Icons.Default.VisibilityOff,
-                color = Color(0xFF5856D6),
-                onClick = onNavigateToEmptyText
-            ),
-            ToolItem(
-                title = stringResource(R.string.open_wa_title),
-                description = stringResource(R.string.direct_message_desc),
-                icon = Icons.Default.Chat,
-                color = Color(0xFF25D366),
-                onClick = onNavigateToOpenWa
+        val textImageTitle = stringResource(R.string.tool_text_image)
+        val textImageDesc = stringResource(R.string.tool_text_image_desc)
+        val emptyTextTitle = stringResource(R.string.tool_empty_text)
+        val emptyTextDesc = stringResource(R.string.tool_empty_text_desc)
+        val openWaTitle = stringResource(R.string.open_wa_title)
+        val openWaDesc = stringResource(R.string.direct_message_desc)
+        val textSplitterTitle = stringResource(R.string.tool_text_splitter)
+        val textSplitterDesc = stringResource(R.string.tool_text_splitter_desc)
+        val videoSplitterTitle = stringResource(R.string.tool_video_splitter)
+        val videoSplitterDesc = stringResource(R.string.tool_video_splitter_desc)
+
+        val tools = remember(textImageTitle, emptyTextTitle, openWaTitle, textSplitterTitle, videoSplitterTitle) {
+            listOf(
+                ToolItem(textImageTitle, textImageDesc, Icons.Default.AutoAwesome, Color(0xFF007AFF)),
+                ToolItem(emptyTextTitle, emptyTextDesc, Icons.Default.VisibilityOff, Color(0xFF5856D6)),
+                ToolItem(openWaTitle, openWaDesc, Icons.Default.Chat, Color(0xFF25D366)),
+                ToolItem(textSplitterTitle, textSplitterDesc, Icons.Default.ContentCut, Color(0xFFFF9500)),
+                ToolItem(videoSplitterTitle, videoSplitterDesc, Icons.Default.VideoLibrary, Color(0xFFFF3B30))
             )
-        )
+        }
+
+        val onClicks = remember(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa, onNavigateToTextSplitter, onNavigateToVideoSplitter) {
+            listOf(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa, onNavigateToTextSplitter, onNavigateToVideoSplitter)
+        }
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(1),
@@ -118,19 +124,19 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.padding(innerPadding)
         ) {
-            items(tools) { tool ->
-                ToolCard(tool)
+            items(tools.size) { index ->
+                ToolCard(tool = tools[index], onClick = onClicks[index])
             }
         }
     }
 }
 
 @Composable
-fun ToolCard(tool: ToolItem) {
+fun ToolCard(tool: ToolItem, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { tool.onClick() },
+            .clickable { onClick() },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
@@ -181,5 +187,4 @@ data class ToolItem(
     val description: String,
     val icon: ImageVector,
     val color: Color,
-    val onClick: () -> Unit
 )
