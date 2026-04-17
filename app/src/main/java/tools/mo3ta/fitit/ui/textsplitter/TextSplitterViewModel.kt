@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import tools.mo3ta.fitit.analytics.AnalyticsManager
 
 enum class SplitPreset(val fixedSize: Int?) {
-    WHATSAPP(200),
+    WHATSAPP(700),
     TWITTER(280),
     CUSTOM(null)
 }
