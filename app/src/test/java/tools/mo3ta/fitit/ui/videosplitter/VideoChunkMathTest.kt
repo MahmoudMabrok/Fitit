@@ -75,4 +75,24 @@ class VideoChunkMathTest {
             assertTrue("Chunk ${chunk.index} has zero or negative length", chunk.endMs > chunk.startMs)
         }
     }
+
+    @Test
+    fun `formatFileSize returns KB for bytes under 1MB`() {
+        assertEquals("512.0 KB", formatFileSize(524_288L))
+    }
+
+    @Test
+    fun `formatFileSize returns MB for bytes at or over 1MB`() {
+        assertEquals("1.0 MB", formatFileSize(1_048_576L))
+    }
+
+    @Test
+    fun `formatFileSize rounds to one decimal`() {
+        assertEquals("4.2 MB", formatFileSize(4_404_019L))
+    }
+
+    @Test
+    fun `formatFileSize returns 0 point 0 KB for zero bytes`() {
+        assertEquals("0.0 KB", formatFileSize(0L))
+    }
 }

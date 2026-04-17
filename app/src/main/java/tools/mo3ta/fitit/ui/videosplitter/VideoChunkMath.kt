@@ -19,3 +19,11 @@ fun calculateChunks(durationMs: Long): List<ChunkRange> {
         )
     }.filter { it.endMs > it.startMs }
 }
+
+fun formatFileSize(bytes: Long): String {
+    return if (bytes < 1_048_576L) {
+        "%.1f KB".format(bytes / 1024.0)
+    } else {
+        "%.1f MB".format(bytes / 1_048_576.0)
+    }
+}
