@@ -1,9 +1,11 @@
 package tools.mo3ta.fitit.ui.settings
 
 import android.app.Application
+import android.app.LocaleManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.LocaleList
 import android.provider.Settings
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
@@ -34,16 +36,30 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun setLanguage(locale: String) {
-        AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(locale))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val localeManager = getApplication<Application>()
+                .getSystemService(LocaleManager::class.java)
+            localeManager?.setApplicationLocales(LocaleList.forLanguageTags(locale))
+        } else {
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(locale))
+        }
     }
 
     fun getCurrentLocale(): String {
-        val localeList = AppCompatDelegate.getApplicationLocales()
-        return if (localeList.isEmpty) {
-            "ar"
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val localeManager = getApplication<Application>()
+                .getSystemService(LocaleManager::class.java)
+            val locales = localeManager?.applicationLocales
+            if (locales != null && !locales.isEmpty) {
+                return locales[0]?.language ?: "ar"
+            }
         } else {
-            localeList[0]?.language ?: "ar"
+            val localeList = AppCompatDelegate.getApplicationLocales()
+            if (!localeList.isEmpty) {
+                return localeList[0]?.language ?: "ar"
+            }
         }
+        return "ar"
     }
 
     fun isNotificationsEnabled(): Boolean {
