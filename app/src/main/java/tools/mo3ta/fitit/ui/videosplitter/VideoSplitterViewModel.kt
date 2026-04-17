@@ -67,7 +67,11 @@ class VideoSplitterViewModel(application: Application) : AndroidViewModel(applic
         chunks = emptyList()
         errorMessage = null
         savedChunkIndices = emptySet()
-        videoFileSizeBytes = readFileSize(uri)
+        videoFileSizeBytes = 0L
+        viewModelScope.launch(Dispatchers.IO) {
+            val size = readFileSize(uri)
+            withContext(Dispatchers.Main) { videoFileSizeBytes = size }
+        }
     }
 
     fun split() {
@@ -167,15 +171,20 @@ class VideoSplitterViewModel(application: Application) : AndroidViewModel(applic
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-        context.startActivity(intent)
-        try { AnalyticsManager.trackVideoChunkPreviewed() } catch (_: Exception) {}
+        try {
+            context.startActivity(intent)
+            try { AnalyticsManager.trackVideoChunkPreviewed() } catch (_: Exception) {}
+        } catch (_: android.content.ActivityNotFoundException) {
+            errorMessage = "لا يوجد تطبيق لتشغيل الفيديو"
+        }
     }
 
     private fun readFileSize(uri: Uri): Long = try {
         getApplication<Application>().contentResolver.query(
             uri, arrayOf(android.provider.OpenableColumns.SIZE), null, null, null
         )?.use { cursor ->
-            if (cursor.moveToFirst()) cursor.getLong(0) else 0L
+            val idx = cursor.getColumnIndex(android.provider.OpenableColumns.SIZE)
+            if (cursor.moveToFirst() && idx >= 0) cursor.getLong(idx) else 0L
         } ?: 0L
     } catch (_: Exception) { 0L }
 }
