@@ -17,15 +17,31 @@ android {
         applicationId = "tools.mo3ta.fitit"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 6
+        versionName = "2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    androidResources {
+        localeFilters += listOf("en", "ar")
+    }
+
+    bundle {
+        language {
+            // Specifies that language resources should be packaged
+            // with the base and dynamic feature APKs, preventing splitting.
+            enableSplit = false
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // Enable R8 code minification (shrinks, obfuscates, and optimizes code)
+            isMinifyEnabled = true
+            // Enable resource shrinking (removes unused resources)
+            isShrinkResources = true
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -36,6 +52,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     buildFeatures {
         compose = true
     }
