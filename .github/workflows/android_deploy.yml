@@ -1,0 +1,115 @@
+name: Android CD
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build Type'
+        required: true
+        type: choice
+        options:
+          - apk
+          - aab
+        default: apk
+      upload_to_play:
+        description: 'Upload to Google Play Console'
+        required: false
+        type: boolean
+        default: false
+      track:
+        description: 'Google Play Track'
+        required: true
+        type: choice
+        options:
+          - internal
+          - alpha
+          - beta
+          - production
+        default: internal
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create google-services.json
+        run: echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > app/google-services.json
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | tr -d ' \n' | base64 --decode > app/release.keystore
+
+      - name: Validate keystore
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "--- Checking required secrets are non-empty ---"
+          [ -n "$ANDROID_KEYSTORE_PASSWORD" ] || { echo "ERROR: ANDROID_KEYSTORE_PASSWORD is empty"; exit 1; }
+          [ -n "$ANDROID_KEY_ALIAS" ]         || { echo "ERROR: ANDROID_KEY_ALIAS is empty"; exit 1; }
+          [ -n "$ANDROID_KEY_PASSWORD" ]      || { echo "ERROR: ANDROID_KEY_PASSWORD is empty"; exit 1; }
+          echo "--- Verifying keystore file can be opened ---"
+          keytool -list \
+            -keystore app/release.keystore \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -alias "$ANDROID_KEY_ALIAS" \
+            -keypass "$ANDROID_KEY_PASSWORD" \
+            -v 2>&1 | grep -E "Alias name|Entry type|ERROR|error" \
+            || { echo "ERROR: keytool could not read the keystore. Check passwords and alias."; exit 1; }
+          echo "--- Keystore validation passed ---"
+
+      - name: Build APK with Gradle
+        if: ${{ github.event.inputs.build_type == 'apk' }}
+        run: ./gradlew assembleRelease
+        env:
+          ANDROID_KEYSTORE_FILE: ../app/release.keystore
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Build AAB with Gradle
+        if: ${{ github.event.inputs.build_type == 'aab' }}
+        run: ./gradlew bundleRelease
+        env:
+          ANDROID_KEYSTORE_FILE: ../app/release.keystore
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Upload APK Artifact
+        if: ${{ github.event.inputs.build_type == 'apk' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: app/build/outputs/apk/release/*.apk
+
+      - name: Upload AAB Artifact
+        if: ${{ github.event.inputs.build_type == 'aab' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-aab
+          path: app/build/outputs/bundle/release/*.aab
+
+      - name: Upload to Google Play
+        if: ${{ github.event.inputs.upload_to_play == 'true' && github.event.inputs.build_type == 'aab' }}
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: tools.mo3ta.fitit
+          releaseFiles: app/build/outputs/bundle/release/*.aab
+          track: ${{ github.event.inputs.track }}
+          status: completed
+          mappingFile: app/build/outputs/mapping/release/mapping.txt
