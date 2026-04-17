@@ -3,18 +3,23 @@ package tools.mo3ta.fitit.ui.videosplitter
 import kotlin.math.ceil
 
 const val CHUNK_STEP_MS = 30_000L
-const val CHUNK_DURATION_MS = 32_000L  // 30s content + 2s overlap
+const val CHUNK_OVERLAP_MS = 2_000L
+const val CHUNK_DURATION_MS = CHUNK_STEP_MS + CHUNK_OVERLAP_MS
 const val MAX_DURATION_MS = 300_000L   // 5 minutes
+const val CHUNK_SIZE_MIN_S = 10
+const val CHUNK_SIZE_MAX_S = 60
+const val CHUNK_SIZE_STEP_S = 5
 
 data class ChunkRange(val startMs: Long, val endMs: Long, val index: Int)
 
-fun calculateChunks(durationMs: Long): List<ChunkRange> {
+fun calculateChunks(durationMs: Long, chunkStepMs: Long = CHUNK_STEP_MS): List<ChunkRange> {
     require(durationMs > 0) { "durationMs must be positive, got $durationMs" }
-    val count = ceil(durationMs.toDouble() / CHUNK_STEP_MS).toInt().coerceAtLeast(1)
+    val chunkDurationMs = chunkStepMs + CHUNK_OVERLAP_MS
+    val count = ceil(durationMs.toDouble() / chunkStepMs).toInt().coerceAtLeast(1)
     return (0 until count).map { i ->
         ChunkRange(
-            startMs = i * CHUNK_STEP_MS,
-            endMs = minOf(i * CHUNK_STEP_MS + CHUNK_DURATION_MS, durationMs),
+            startMs = i * chunkStepMs,
+            endMs = minOf(i * chunkStepMs + chunkDurationMs, durationMs),
             index = i + 1
         )
     }.filter { it.endMs > it.startMs }

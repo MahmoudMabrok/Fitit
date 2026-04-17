@@ -110,4 +110,6 @@
     <string name="video_splitter_chunks_count">%d مقاطع</string>
     <string name="video_splitter_preview">معاينة</string>
     <string name="video_splitter_no_player">لا يوجد تطبيق لتشغيل الفيديو</string>
+    <string name="video_splitter_chunk_size_label">مدة المقطع</string>
+    <string name="video_splitter_seconds_unit">ث</string>
 </resources>

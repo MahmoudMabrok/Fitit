@@ -23,8 +23,10 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.VideoLibrary
@@ -137,6 +139,16 @@ fun VideoSplitterScreen(
             }
 
             item {
+                ChunkSizeStepper(
+                    chunkSizeSeconds = viewModel.chunkSizeSeconds,
+                    onDecrement = { viewModel.setChunkSize(viewModel.chunkSizeSeconds - CHUNK_SIZE_STEP_S) },
+                    onIncrement = { viewModel.setChunkSize(viewModel.chunkSizeSeconds + CHUNK_SIZE_STEP_S) },
+                    label = stringResource(R.string.video_splitter_chunk_size_label),
+                    unit = stringResource(R.string.video_splitter_seconds_unit)
+                )
+            }
+
+            item {
                 SplitButton(
                     onClick = { viewModel.split() },
                     enabled = viewModel.isSplitEnabled,
@@ -193,6 +205,7 @@ fun VideoSplitterScreen(
                         previewLabel = stringResource(R.string.video_splitter_preview),
                         chunkLabel = stringResource(R.string.video_splitter_chunk_label),
                         fileSizeBytes = chunk.fileSizeBytes,
+                        chunkDurationMs = viewModel.chunkSizeSeconds * 1000L + CHUNK_OVERLAP_MS,
                         onSave = { viewModel.saveChunk(context, chunk) },
                         onShare = { viewModel.shareChunk(context, chunk) },
                         onPreview = { viewModel.previewChunk(context, chunk) }
@@ -334,6 +347,62 @@ private fun ErrorCard(message: String) {
 }
 
 @Composable
+private fun ChunkSizeStepper(
+    chunkSizeSeconds: Int,
+    onDecrement: () -> Unit,
+    onIncrement: () -> Unit,
+    label: String,
+    unit: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = label,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                IconButton(
+                    onClick = onDecrement,
+                    enabled = chunkSizeSeconds > CHUNK_SIZE_MIN_S
+                ) {
+                    Icon(Icons.Default.Remove, contentDescription = null,
+                        tint = if (chunkSizeSeconds > CHUNK_SIZE_MIN_S) RedAccent
+                               else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f))
+                }
+                Text(
+                    text = "$chunkSizeSeconds $unit",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = RedAccent
+                )
+                IconButton(
+                    onClick = onIncrement,
+                    enabled = chunkSizeSeconds < CHUNK_SIZE_MAX_S
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null,
+                        tint = if (chunkSizeSeconds < CHUNK_SIZE_MAX_S) RedAccent
+                               else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun VideoChunkCard(
     chunk: VideoChunk,
     isSaved: Boolean,
@@ -343,12 +412,13 @@ private fun VideoChunkCard(
     previewLabel: String,
     chunkLabel: String,
     fileSizeBytes: Long,
+    chunkDurationMs: Long,
     onSave: () -> Unit,
     onShare: () -> Unit,
     onPreview: () -> Unit
 ) {
     val animatedFill by animateFloatAsState(
-        targetValue = (chunk.endMs - chunk.startMs).toFloat() / CHUNK_DURATION_MS.toFloat(),
+        targetValue = (chunk.endMs - chunk.startMs).toFloat() / chunkDurationMs.toFloat(),
         animationSpec = tween(600),
         label = "fill_${chunk.index}"
     )

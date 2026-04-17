@@ -54,12 +54,20 @@ class VideoSplitterViewModel(application: Application) : AndroidViewModel(applic
         private set
     var videoFileSizeBytes by mutableStateOf(0L)
         private set
+    var chunkSizeSeconds by mutableStateOf(CHUNK_STEP_MS.toInt() / 1000)
+        private set
 
     val isDurationValid: Boolean
         get() = videoDurationMs in 1..MAX_DURATION_MS
 
     val isSplitEnabled: Boolean
-        get() = selectedVideoUri != null && isDurationValid && !isProcessing
+        get() = selectedVideoUri != null && isDurationValid && !isProcessing &&
+                videoDurationMs >= chunkSizeSeconds * 1000L
+
+    fun setChunkSize(seconds: Int) {
+        chunkSizeSeconds = seconds.coerceIn(CHUNK_SIZE_MIN_S, CHUNK_SIZE_MAX_S)
+        chunks = emptyList()
+    }
 
     fun onVideoSelected(uri: Uri, durationMs: Long) {
         selectedVideoUri = uri
@@ -90,7 +98,7 @@ class VideoSplitterViewModel(application: Application) : AndroidViewModel(applic
 
             try {
                 val outputDir = File(context.cacheDir, "video_chunks").also { it.mkdirs() }
-                val ranges = calculateChunks(videoDurationMs)
+                val ranges = calculateChunks(videoDurationMs, chunkSizeSeconds * 1000L)
                 chunks = withContext(Dispatchers.IO) {
                     ranges.mapIndexed { i, range ->
                         val outputFile = File(outputDir, "chunk_${range.index}.mp4")

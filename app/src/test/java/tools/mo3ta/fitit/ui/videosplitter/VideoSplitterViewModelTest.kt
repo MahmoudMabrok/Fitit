@@ -62,6 +62,41 @@ class VideoSplitterViewModelTest {
     }
 
     @Test
+    fun `isSplitEnabled is false when video shorter than chunk size`() {
+        val vm = createViewModel()
+        val uri = mockk<Uri>()
+        vm.onVideoSelected(uri, 20_000L)  // 20s video
+        vm.setChunkSize(30)               // 30s chunk
+        assertFalse(vm.isSplitEnabled)
+    }
+
+    @Test
+    fun `isSplitEnabled is true when video equals chunk size`() {
+        val vm = createViewModel()
+        val uri = mockk<Uri>()
+        vm.onVideoSelected(uri, 30_000L)  // 30s video
+        vm.setChunkSize(30)               // 30s chunk
+        assertTrue(vm.isSplitEnabled)
+    }
+
+    @Test
+    fun `setChunkSize clamps to min and max`() {
+        val vm = createViewModel()
+        vm.setChunkSize(5)
+        assertEquals(CHUNK_SIZE_MIN_S, vm.chunkSizeSeconds)
+        vm.setChunkSize(99)
+        assertEquals(CHUNK_SIZE_MAX_S, vm.chunkSizeSeconds)
+    }
+
+    @Test
+    fun `setChunkSize resets chunks`() {
+        val vm = createViewModel()
+        // chunks list should be empty after setChunkSize
+        vm.setChunkSize(45)
+        assertTrue(vm.chunks.isEmpty())
+    }
+
+    @Test
     fun `onVideoSelected resets videoFileSizeBytes`() {
         val vm = createViewModel()
         val uri = mockk<Uri>()

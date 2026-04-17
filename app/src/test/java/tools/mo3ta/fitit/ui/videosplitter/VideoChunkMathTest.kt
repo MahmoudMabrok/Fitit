@@ -77,6 +77,19 @@ class VideoChunkMathTest {
     }
 
     @Test
+    fun `calculateChunks with 45s step produces correct count`() {
+        val chunks = calculateChunks(90_000L, 45_000L)  // 90s / 45s = 2 chunks
+        assertEquals(2, chunks.size)
+    }
+
+    @Test
+    fun `calculateChunks with custom step overlaps by 2s`() {
+        val chunks = calculateChunks(90_000L, 45_000L)
+        // chunk[0] end - chunk[1] start = 47000 - 45000 = 2000
+        assertEquals(2_000L, chunks[0].endMs - chunks[1].startMs)
+    }
+
+    @Test
     fun `formatFileSize returns KB for bytes under 1MB`() {
         assertEquals("512.0 KB", formatFileSize(524_288L))
     }
