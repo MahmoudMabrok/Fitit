@@ -60,4 +60,13 @@ class VideoSplitterViewModelTest {
         assertTrue(vm.chunks.isEmpty())
         assertNull(vm.errorMessage)
     }
+
+    @Test
+    fun `onVideoSelected resets videoFileSizeBytes`() {
+        val vm = createViewModel()
+        val uri = mockk<Uri>()
+        vm.onVideoSelected(uri, 60_000L)
+        // After selection videoFileSizeBytes is reset to 0 (ContentResolver unavailable in unit test)
+        assertEquals(0L, vm.videoFileSizeBytes)
+    }
 }

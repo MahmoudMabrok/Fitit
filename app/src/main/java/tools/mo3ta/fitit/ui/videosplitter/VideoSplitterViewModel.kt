@@ -7,6 +7,7 @@ import android.content.Intent
 import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
+import android.media.MediaMetadataRetriever
 import android.media.MediaMuxer
 import android.net.Uri
 import android.os.Build
@@ -31,7 +32,8 @@ data class VideoChunk(
     val file: File,
     val startMs: Long,
     val endMs: Long,
-    val index: Int
+    val index: Int,
+    val fileSizeBytes: Long = 0L
 )
 
 class VideoSplitterViewModel(application: Application) : AndroidViewModel(application) {
@@ -50,6 +52,8 @@ class VideoSplitterViewModel(application: Application) : AndroidViewModel(applic
         private set
     var savedChunkIndices by mutableStateOf<Set<Int>>(emptySet())
         private set
+    var videoFileSizeBytes by mutableStateOf(0L)
+        private set
 
     val isDurationValid: Boolean
         get() = videoDurationMs in 1..MAX_DURATION_MS
@@ -63,6 +67,7 @@ class VideoSplitterViewModel(application: Application) : AndroidViewModel(applic
         chunks = emptyList()
         errorMessage = null
         savedChunkIndices = emptySet()
+        videoFileSizeBytes = readFileSize(uri)
     }
 
     fun split() {
@@ -89,7 +94,7 @@ class VideoSplitterViewModel(application: Application) : AndroidViewModel(applic
                         withContext(Dispatchers.Main) {
                             progress = (i + 1).toFloat() / ranges.size
                         }
-                        VideoChunk(outputFile, range.startMs, range.endMs, range.index)
+                        VideoChunk(outputFile, range.startMs, range.endMs, range.index, outputFile.length())
                     }
                 }
             } catch (e: Exception) {
@@ -152,6 +157,27 @@ class VideoSplitterViewModel(application: Application) : AndroidViewModel(applic
         context.startActivity(Intent.createChooser(intent, null))
         try { AnalyticsManager.trackVideoChunkShared() } catch (_: Exception) {}
     }
+
+    fun previewChunk(context: Context, chunk: VideoChunk) {
+        val fileUri = FileProvider.getUriForFile(
+            context, "${context.packageName}.provider", chunk.file
+        )
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(fileUri, "video/mp4")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(intent)
+        try { AnalyticsManager.trackVideoChunkPreviewed() } catch (_: Exception) {}
+    }
+
+    private fun readFileSize(uri: Uri): Long = try {
+        getApplication<Application>().contentResolver.query(
+            uri, arrayOf(android.provider.OpenableColumns.SIZE), null, null, null
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) cursor.getLong(0) else 0L
+        } ?: 0L
+    } catch (_: Exception) { 0L }
 }
 
 private fun extractSegment(
@@ -161,6 +187,17 @@ private fun extractSegment(
     endMs: Long,
     output: File
 ) {
+    val rotation: Int
+    val retriever = MediaMetadataRetriever()
+    try {
+        retriever.setDataSource(context, uri)
+        rotation = retriever.extractMetadata(
+            MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION
+        )?.toIntOrNull() ?: 0
+    } finally {
+        retriever.release()
+    }
+
     val extractor = MediaExtractor()
     try {
         extractor.setDataSource(context, uri, null)
@@ -177,6 +214,7 @@ private fun extractSegment(
                 }
             }
 
+            muxer.setOrientationHint(rotation)
             muxer.start()
             extractor.seekTo(startMs * 1000L, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
 

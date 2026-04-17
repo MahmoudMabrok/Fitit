@@ -42,6 +42,8 @@ object AnalyticsManager {
 
     fun trackVideoChunkShared() = log("zaki_video_chunk_shared")
 
+    fun trackVideoChunkPreviewed() = log("zaki_video_chunk_previewed")
+
     private fun log(name: String, vararg params: Pair<String, String>) {
         val bundle = Bundle()
         params.forEach { (key, value) -> bundle.putString(key, value) }
