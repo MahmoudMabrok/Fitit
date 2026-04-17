@@ -175,7 +175,7 @@ class VideoSplitterViewModel(application: Application) : AndroidViewModel(applic
             context.startActivity(intent)
             try { AnalyticsManager.trackVideoChunkPreviewed() } catch (_: Exception) {}
         } catch (_: android.content.ActivityNotFoundException) {
-            errorMessage = "لا يوجد تطبيق لتشغيل الفيديو"
+            errorMessage = getApplication<Application>().getString(R.string.video_splitter_no_player)
         }
     }
 

@@ -109,4 +109,5 @@
     <string name="video_splitter_tap_to_change">اضغط لتغيير الفيديو</string>
     <string name="video_splitter_chunks_count">%d مقاطع</string>
     <string name="video_splitter_preview">معاينة</string>
+    <string name="video_splitter_no_player">لا يوجد تطبيق لتشغيل الفيديو</string>
 </resources>
