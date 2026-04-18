@@ -91,4 +91,25 @@
     <string name="text_splitter_preset_twitter_desc">Fits Twitter character limits</string>
     <string name="text_splitter_preset_custom_desc">You choose the size</string>
     <string name="text_splitter_chars_unit">chars</string>
+
+    <!-- Video Splitter Screen -->
+    <string name="tool_video_splitter">Video Splitter</string>
+    <string name="tool_video_splitter_desc">Split a video into short clips ready to share</string>
+    <string name="video_splitter_title">Video Splitter</string>
+    <string name="video_splitter_feature_desc">Pick a video up to 5 minutes. It will be split into 30-second clips with a 2-second overlap between each clip.</string>
+    <string name="video_splitter_pick_video">Pick a video from gallery</string>
+    <string name="video_splitter_duration_error">Video exceeds the 5-minute limit</string>
+    <string name="video_splitter_split_button">Split</string>
+    <string name="video_splitter_save">Save</string>
+    <string name="video_splitter_share">Share</string>
+    <string name="video_splitter_saved">Saved</string>
+    <string name="video_splitter_chunk_label">Clip</string>
+    <string name="video_splitter_error_generic">Split failed, please try again</string>
+    <string name="video_splitter_max_duration">Max 5 minutes</string>
+    <string name="video_splitter_tap_to_change">Tap to change video</string>
+    <string name="video_splitter_chunks_count">%d clips</string>
+    <string name="video_splitter_preview">Preview</string>
+    <string name="video_splitter_no_player">No video player app found</string>
+    <string name="video_splitter_chunk_size_label">Clip duration</string>
+    <string name="video_splitter_seconds_unit">s</string>
 </resources>
