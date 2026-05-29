@@ -6,8 +6,8 @@
     <string name="home_title">مجموعة أدوات صانع المحتوى</string>
     <string name="tool_text_image">نص في صورة</string>
     <string name="tool_text_image_desc">ضع أي نص في صورة عالية الجودة بتصاميم مخصصة</string>
-    <string name="tool_empty_text">نص غير مرئي</string>
-    <string name="tool_empty_text_desc">أنشئ نصاً غير مرئي لتطبيقات التواصل الاجتماعي</string>
+    <string name="tool_empty_text">محتوى خادع</string>
+    <string name="tool_empty_text_desc">أنشئ نصاً غير مرئي أو نص رسالة صوتية وهمية لمقالب أصدقائك</string>
     <string name="settings">الإعدادات</string>
     <string name="settings_description">إعدادات التطبيق</string>
 
@@ -35,9 +35,13 @@
     <string name="onboarding_desc">رفيقك لمعالجة النصوص وأكثر.</string>
     <string name="get_started">ابدأ الآن</string>
 
-    <!-- Invisible Text Screen -->
-    <string name="invisible_text_title">نص غير مرئي</string>
-    <string name="char_type">نوع الحرف</string>
+    <!-- Tricky Content Screen -->
+    <string name="tricky_content_title">محتوى خادع</string>
+    <string name="tricky_type">النوع</string>
+    <string name="tricky_mode_invisible">نص مخفي</string>
+    <string name="tricky_mode_voice">رسالة صوتية</string>
+    <string name="tricky_duration">المدة</string>
+    <string name="tricky_chars_unit">حرف</string>
     <string name="length">الطول</string>
     <string name="copy_to_clipboard">نسخ إلى الحافظة</string>
     <string name="copied_toast">تم النسخ! الصقه في أي مكان</string>
