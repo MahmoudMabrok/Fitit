@@ -1,0 +1,43 @@
+name: Delete merged branch
+
+# When a pull request is merged into the base branch, automatically delete
+# its (same-repo) head branch to keep the branch list clean.
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  delete-branch:
+    name: Delete head branch
+    runs-on: ubuntu-latest
+    # Only run for merged PRs whose head branch lives in this repository
+    # (skip closed-without-merge and forked PRs).
+    if: >-
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: write
+    steps:
+      - name: Delete head branch
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const ref = context.payload.pull_request.head.ref;
+            const defaultBranch = context.payload.repository.default_branch;
+            if (ref === defaultBranch) {
+              core.info(`Refusing to delete the default branch: ${ref}`);
+              return;
+            }
+            try {
+              await github.rest.git.deleteRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `heads/${ref}`,
+              });
+              core.info(`Deleted branch: ${ref}`);
+            } catch (error) {
+              // The branch may already be gone (e.g. "delete branch on merge"
+              // repo setting). Don't fail the workflow over it.
+              core.warning(`Could not delete branch ${ref}: ${error.message}`);
+            }

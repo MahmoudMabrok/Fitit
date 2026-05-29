@@ -44,6 +44,14 @@ android {
         }
     }
 
+    testOptions {
+        unitTests {
+            // Return default values (instead of throwing) for un-mocked
+            // android.* framework calls reached from local unit tests.
+            isReturnDefaultValues = true
+        }
+    }
+
     buildTypes {
         release {
             // Enable R8 code minification (shrinks, obfuscates, and optimizes code)
