@@ -35,16 +35,20 @@ class EmptyTextViewModel : ViewModel() {
     private fun generateVoiceMessage(seconds: Int): String {
         val rng = Random(seconds.toLong())
         val barCount = (seconds / 2 + 8).coerceIn(10, 28)
-        var previous = -1
-        val bars = (0 until barCount).joinToString(" ") {
-            // Pick a height different from the previous bar so the result
-            // reads as distinct bars of varying height rather than a flat block.
-            var level = rng.nextInt(WAVE_LEVELS.length)
-            if (level == previous) level = (level + 1) % WAVE_LEVELS.length
-            previous = level
-            WAVE_LEVELS[level].toString()
+        val bars = buildString {
+            var previous = -1
+            repeat(barCount) {
+                // Pick a bar glyph different from the previous one so the result
+                // reads as a waveform of varying heights rather than a flat run.
+                var level = rng.nextInt(WAVE_BARS.size)
+                if (level == previous) level = (level + 1) % WAVE_BARS.size
+                previous = level
+                append(WAVE_BARS[level])
+            }
         }
-        return "$PLAY_ICON $bars ${formatDuration(seconds)}"
+        // Wrap the waveform in bullet dots, like a real voice-note bubble:
+        //   ▶︎ •၊၊||၊|။||||။၊|• 0:10
+        return "$PLAY_ICON $BULLET$bars$BULLET ${formatDuration(seconds)}"
     }
 
     /** Formats the voice-note length as m:ss (e.g. 75 -> "1:15"). */
@@ -67,12 +71,18 @@ class EmptyTextViewModel : ViewModel() {
         // so it passes "non-empty" filters on many social apps.
         private const val HANGUL_FILLER = "ㅤ"
 
-        // ▶ play triangle.
-        private const val PLAY_ICON = "▶"
+        // ▶ play triangle, with U+FE0E text variation selector so it renders
+        // as a flat glyph rather than a colorful emoji.
+        private const val PLAY_ICON = "▶︎"
 
-        // ▁▂▃▄▅▆▇█ block elements of increasing height, used as fake
-        // waveform bars so the result looks like a barcode of varying heights.
-        private const val WAVE_LEVELS = "▁▂▃▄▅▆▇█"
+        // • bullet dots that bracket the waveform, like a real voice-note bubble.
+        private const val BULLET = "•"
+
+        // Vertical stroke glyphs of differing visual heights, used as fake
+        // waveform bars. Mixing Myanmar section signs (၊ ။) with the ASCII pipe
+        // gives short / tall / double-tall bars that read as a varied waveform:
+        //   ▶︎ •၊၊||၊|။||||။၊|• 0:10
+        private val WAVE_BARS = listOf("၊", "|", "။")
     }
 }
 
