@@ -112,4 +112,27 @@
     <string name="video_splitter_no_player">No video player app found</string>
     <string name="video_splitter_chunk_size_label">Clip duration</string>
     <string name="video_splitter_seconds_unit">s</string>
+    <string name="tool_video_enhancer">Video Enhancer</string>
+    <string name="tool_video_enhancer_desc">Sharpen and upscale video quality, on-device</string>
+    <string name="video_enhancer_title">Video Enhancer</string>
+    <string name="video_enhancer_feature_desc">Pick a video up to 5 minutes. It is processed on your device to sharpen detail, upscale resolution and re-encode at higher quality. Nothing is uploaded.</string>
+    <string name="video_enhancer_pick_video">Pick a video from gallery</string>
+    <string name="video_enhancer_max_duration">Max 5 minutes</string>
+    <string name="video_enhancer_duration_error">Video exceeds the 5-minute limit</string>
+    <string name="video_enhancer_tap_to_change">Tap to change video</string>
+    <string name="video_enhancer_level_label">Enhancement level</string>
+    <string name="video_enhancer_level_light">Light</string>
+    <string name="video_enhancer_level_standard">Standard</string>
+    <string name="video_enhancer_level_max">Max</string>
+    <string name="video_enhancer_enhance_button">Enhance Video</string>
+    <string name="video_enhancer_processing">Processing… %d%%</string>
+    <string name="video_enhancer_result_title">Enhanced video ready</string>
+    <string name="video_enhancer_original">Original</string>
+    <string name="video_enhancer_enhanced">Enhanced</string>
+    <string name="video_enhancer_preview">Preview</string>
+    <string name="video_enhancer_save">Save</string>
+    <string name="video_enhancer_saved">Saved</string>
+    <string name="video_enhancer_share">Share</string>
+    <string name="video_enhancer_no_player">No video player app found</string>
+    <string name="video_enhancer_error_generic">Enhancement failed, please try again</string>
 </resources>

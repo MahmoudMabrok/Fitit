@@ -21,6 +21,7 @@ import tools.mo3ta.fitit.ui.settings.SettingsViewModel
 import tools.mo3ta.fitit.ui.textimage.TextImageScreen
 import tools.mo3ta.fitit.ui.textsplitter.TextSplitterScreen
 import tools.mo3ta.fitit.ui.videosplitter.VideoSplitterScreen
+import tools.mo3ta.fitit.ui.videoenhancer.VideoEnhancerScreen
 import tools.mo3ta.fitit.ui.theme.FititTheme
 
 class MainActivity : ComponentActivity() {
@@ -67,6 +68,7 @@ class MainActivity : ComponentActivity() {
                         onNavigateToOpenWa = { navController.navigate("open_wa") },
                         onNavigateToTextSplitter = { navController.navigate("text_splitter") },
                         onNavigateToVideoSplitter = { navController.navigate("video_splitter") },
+                        onNavigateToVideoEnhancer = { navController.navigate("video_enhancer") },
                         onNavigateToSettings = { navController.navigate("settings") }
                     )
                 }
@@ -87,6 +89,9 @@ class MainActivity : ComponentActivity() {
                 }
                 composable("video_splitter") {
                     VideoSplitterScreen(onBack = { navController.popBackStack() })
+                }
+                composable("video_enhancer") {
+                    VideoEnhancerScreen(onBack = { navController.popBackStack() })
                 }
             }
         }

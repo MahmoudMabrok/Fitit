@@ -112,4 +112,27 @@
     <string name="video_splitter_no_player">لا يوجد تطبيق لتشغيل الفيديو</string>
     <string name="video_splitter_chunk_size_label">مدة المقطع</string>
     <string name="video_splitter_seconds_unit">ث</string>
+    <string name="tool_video_enhancer">تحسين الفيديو</string>
+    <string name="tool_video_enhancer_desc">حسّن وضوح الفيديو وارفع دقته على جهازك</string>
+    <string name="video_enhancer_title">تحسين الفيديو</string>
+    <string name="video_enhancer_feature_desc">اختر فيديو بحد أقصى ٥ دقائق. تتم معالجته على جهازك لزيادة الحدة ورفع الدقة وإعادة الترميز بجودة أعلى. لا يتم رفع أي بيانات.</string>
+    <string name="video_enhancer_pick_video">اختر فيديو من المعرض</string>
+    <string name="video_enhancer_max_duration">الحد الأقصى ٥ دقائق</string>
+    <string name="video_enhancer_duration_error">مدة الفيديو تتجاوز ٥ دقائق</string>
+    <string name="video_enhancer_tap_to_change">اضغط لتغيير الفيديو</string>
+    <string name="video_enhancer_level_label">مستوى التحسين</string>
+    <string name="video_enhancer_level_light">خفيف</string>
+    <string name="video_enhancer_level_standard">قياسي</string>
+    <string name="video_enhancer_level_max">أقصى</string>
+    <string name="video_enhancer_enhance_button">تحسين الفيديو</string>
+    <string name="video_enhancer_processing">جارٍ المعالجة… %d%%</string>
+    <string name="video_enhancer_result_title">الفيديو المحسّن جاهز</string>
+    <string name="video_enhancer_original">الأصلي</string>
+    <string name="video_enhancer_enhanced">المحسّن</string>
+    <string name="video_enhancer_preview">معاينة</string>
+    <string name="video_enhancer_save">حفظ</string>
+    <string name="video_enhancer_saved">تم الحفظ</string>
+    <string name="video_enhancer_share">مشاركة</string>
+    <string name="video_enhancer_no_player">لا يوجد تطبيق لتشغيل الفيديو</string>
+    <string name="video_enhancer_error_generic">فشل تحسين الفيديو، حاول مرة أخرى</string>
 </resources>
