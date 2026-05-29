@@ -36,7 +36,15 @@ class EmptyTextViewModel : ViewModel() {
         val rng = Random(seconds.toLong())
         val barCount = (seconds / 2 + 8).coerceIn(10, 28)
         val bars = buildString {
-            repeat(barCount) { append(WAVE_LEVELS[rng.nextInt(WAVE_LEVELS.length)]) }
+            var previous = -1
+            repeat(barCount) {
+                // Pick a height different from the previous bar so the result
+                // reads as distinct bars of varying height rather than a flat block.
+                var level = rng.nextInt(WAVE_LEVELS.length)
+                if (level == previous) level = (level + 1) % WAVE_LEVELS.length
+                previous = level
+                append(WAVE_LEVELS[level])
+            }
         }
         return "$PLAY_ICON $bars ${formatDuration(seconds)}"
     }
@@ -64,8 +72,9 @@ class EmptyTextViewModel : ViewModel() {
         // ▶ play triangle.
         private const val PLAY_ICON = "▶"
 
-        // ▁▂▃▄▅▆▇ block elements used as fake waveform bars.
-        private const val WAVE_LEVELS = "▁▂▃▄▅▆▇"
+        // ▁▂▃▄▅▆▇█ block elements of increasing height, used as fake
+        // waveform bars so the result looks like a barcode of varying heights.
+        private const val WAVE_LEVELS = "▁▂▃▄▅▆▇█"
     }
 }
 
