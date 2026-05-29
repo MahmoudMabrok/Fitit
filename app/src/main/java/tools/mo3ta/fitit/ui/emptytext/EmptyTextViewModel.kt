@@ -35,16 +35,14 @@ class EmptyTextViewModel : ViewModel() {
     private fun generateVoiceMessage(seconds: Int): String {
         val rng = Random(seconds.toLong())
         val barCount = (seconds / 2 + 8).coerceIn(10, 28)
-        val bars = buildString {
-            var previous = -1
-            repeat(barCount) {
-                // Pick a height different from the previous bar so the result
-                // reads as distinct bars of varying height rather than a flat block.
-                var level = rng.nextInt(WAVE_LEVELS.length)
-                if (level == previous) level = (level + 1) % WAVE_LEVELS.length
-                previous = level
-                append(WAVE_LEVELS[level])
-            }
+        var previous = -1
+        val bars = (0 until barCount).joinToString(" ") {
+            // Pick a height different from the previous bar so the result
+            // reads as distinct bars of varying height rather than a flat block.
+            var level = rng.nextInt(WAVE_LEVELS.length)
+            if (level == previous) level = (level + 1) % WAVE_LEVELS.length
+            previous = level
+            WAVE_LEVELS[level].toString()
         }
         return "$PLAY_ICON $bars ${formatDuration(seconds)}"
     }
