@@ -43,9 +43,9 @@ fun EmptyTextScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
-                title = { 
+                title = {
                     Text(
-                        text = stringResource(R.string.invisible_text_title),
+                        text = stringResource(R.string.tricky_content_title),
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
                     ) 
@@ -99,9 +99,15 @@ fun EmptyTextScreen(
                     )
                     
                     Spacer(Modifier.height(16.dp))
-                    
+
+                    val caption = when (viewModel.selectedMode) {
+                        TrickyContentType.INVISIBLE ->
+                            "${viewModel.charCount.toInt()} ${stringResource(R.string.tricky_chars_unit)} · ${stringResource(R.string.tricky_mode_invisible)}"
+                        TrickyContentType.VOICE_MESSAGE ->
+                            "${stringResource(R.string.tricky_mode_voice)} · ${viewModel.formattedDuration()}"
+                    }
                     Text(
-                        text = "${viewModel.charCount.toInt()} chars · ${viewModel.selectedType.displayName.lowercase()}",
+                        text = caption,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp,
                         textAlign = TextAlign.Center
@@ -111,27 +117,31 @@ fun EmptyTextScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // Character Type Selection (Chips)
+            // Tricky content type selection (Chips)
             Text(
-                text = stringResource(R.string.char_type),
+                text = stringResource(R.string.tricky_type),
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(12.dp))
-            
+
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                InvisibleCharType.values().forEach { type ->
-                    val isSelected = viewModel.selectedType == type
+                val modeLabels = mapOf(
+                    TrickyContentType.INVISIBLE to stringResource(R.string.tricky_mode_invisible),
+                    TrickyContentType.VOICE_MESSAGE to stringResource(R.string.tricky_mode_voice)
+                )
+                TrickyContentType.values().forEach { mode ->
+                    val isSelected = viewModel.selectedMode == mode
                     FilterChip(
                         selected = isSelected,
-                        onClick = { viewModel.selectedType = type },
-                        label = { Text(type.displayName) },
+                        onClick = { viewModel.selectedMode = mode },
+                        label = { Text(modeLabels.getValue(mode)) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primary,
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
@@ -143,36 +153,52 @@ fun EmptyTextScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // Slider & Length Label
+            // Slider — length (invisible) or duration (voice message)
+            val isInvisible = viewModel.selectedMode == TrickyContentType.INVISIBLE
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = stringResource(R.string.length),
+                    text = if (isInvisible) stringResource(R.string.length)
+                    else stringResource(R.string.tricky_duration),
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "${viewModel.charCount.toInt()}",
+                    text = if (isInvisible) "${viewModel.charCount.toInt()}"
+                    else viewModel.formattedDuration(),
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 16.sp
                 )
             }
-            
-            Slider(
-                value = viewModel.charCount,
-                onValueChange = { viewModel.charCount = it },
-                valueRange = 1f..200f,
-                colors = SliderDefaults.colors(
-                    thumbColor = MaterialTheme.colorScheme.primary,
-                    activeTrackColor = MaterialTheme.colorScheme.primary,
-                    inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.24f)
+
+            if (isInvisible) {
+                Slider(
+                    value = viewModel.charCount,
+                    onValueChange = { viewModel.charCount = it },
+                    valueRange = 1f..200f,
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                        inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.24f)
+                    )
                 )
-            )
+            } else {
+                Slider(
+                    value = viewModel.durationSeconds,
+                    onValueChange = { viewModel.durationSeconds = it },
+                    valueRange = 1f..300f,
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                        inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.24f)
+                    )
+                )
+            }
 
             Spacer(Modifier.weight(1f))
             Spacer(Modifier.height(32.dp))
@@ -181,7 +207,9 @@ fun EmptyTextScreen(
             Button(
                 onClick = {
                     viewModel.copyToClipboard(context)
-                    AnalyticsManager.trackEmptyTextCopied(viewModel.selectedType.displayName, viewModel.charCount.toInt())
+                    val length = if (viewModel.selectedMode == TrickyContentType.INVISIBLE)
+                        viewModel.charCount.toInt() else viewModel.durationSeconds.toInt()
+                    AnalyticsManager.trackEmptyTextCopied(viewModel.selectedMode.name, length)
                     // Showing a Toast as requested, but also have Snackbar host if needed
                     Toast.makeText(context, context.getString(R.string.copied_toast), Toast.LENGTH_SHORT).show()
                 },

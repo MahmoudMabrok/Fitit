@@ -84,8 +84,8 @@ class TextSplitterViewModelTest {
     @Test
     fun `split produces chunks and clears errorMessage for long text`() {
         val vm = createViewModel()
-        vm.inputText = "word ".repeat(60).trim()  // ~300 chars
-        vm.selectedPreset = SplitPreset.WHATSAPP  // 200 chars
+        vm.inputText = "word ".repeat(200).trim()  // ~999 chars, exceeds the WHATSAPP limit
+        vm.selectedPreset = SplitPreset.WHATSAPP  // 700 chars
         vm.split()
         assertNull(vm.errorMessage)
         assertTrue(vm.chunks.size > 1)

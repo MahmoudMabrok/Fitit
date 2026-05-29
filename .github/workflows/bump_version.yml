@@ -1,0 +1,66 @@
+name: Bump versionCode
+
+# On every merge/push to main, automatically increment the Android
+# versionCode in app/build.gradle.kts by 1 and commit it back.
+on:
+  push:
+    branches:
+      - main
+
+# Avoid overlapping bumps racing on the same branch.
+concurrency:
+  group: bump-version
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    name: Increment versionCode
+    runs-on: ubuntu-latest
+    # Skip the run triggered by our own bump commit to prevent an infinite loop.
+    if: "${{ !contains(github.event.head_commit.message, 'chore: bump versionCode') }}"
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Use a token so the pushed commit can trigger other workflows if desired,
+          # and check out the branch (not the detached commit) so we can push.
+          ref: main
+          fetch-depth: 0
+
+      - name: Increment versionCode in app/build.gradle.kts
+        id: bump
+        run: |
+          set -euo pipefail
+          GRADLE_FILE="app/build.gradle.kts"
+
+          CURRENT=$(grep -E '^\s*versionCode\s*=\s*[0-9]+' "$GRADLE_FILE" | grep -oE '[0-9]+' | head -n1)
+          if [ -z "${CURRENT:-}" ]; then
+            echo "ERROR: Could not find versionCode in $GRADLE_FILE"
+            exit 1
+          fi
+
+          NEXT=$((CURRENT + 1))
+          echo "Bumping versionCode: $CURRENT -> $NEXT"
+
+          # Replace the versionCode value, preserving the original indentation.
+          sed -i -E "s/^([[:space:]]*versionCode[[:space:]]*=[[:space:]]*)[0-9]+/\1${NEXT}/" "$GRADLE_FILE"
+
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "next=$NEXT" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push bumped versionCode
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git add app/build.gradle.kts
+          git commit -m "chore: bump versionCode to ${{ steps.bump.outputs.next }} [skip ci]"
+          git push origin main

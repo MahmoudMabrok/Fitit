@@ -3,10 +3,30 @@ package tools.mo3ta.fitit.ui.videosplitter
 import android.app.Application
 import android.net.Uri
 import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.*
+import org.junit.Before
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class VideoSplitterViewModelTest {
+
+    @Before
+    fun setup() {
+        // viewModelScope is backed by Dispatchers.Main, which is unavailable in
+        // plain JVM unit tests unless we install a test dispatcher.
+        Dispatchers.setMain(UnconfinedTestDispatcher())
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
 
     private fun createViewModel(): VideoSplitterViewModel {
         val application = mockk<Application>(relaxed = true)

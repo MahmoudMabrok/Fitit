@@ -6,8 +6,8 @@
     <string name="home_title">Content Creator Toolkit</string>
     <string name="tool_text_image">Text on Image</string>
     <string name="tool_text_image_desc">Place any text on a high-quality image with custom designs</string>
-    <string name="tool_empty_text">Invisible Text</string>
-    <string name="tool_empty_text_desc">Create invisible text for social media apps</string>
+    <string name="tool_empty_text">Tricky Content</string>
+    <string name="tool_empty_text_desc">Generate invisible text or fake voice-message text to prank your friends</string>
     <string name="settings">Settings</string>
     <string name="settings_description">App settings</string>
 
@@ -35,9 +35,13 @@
     <string name="onboarding_desc">Your companion for text processing and more.</string>
     <string name="get_started">Get Started</string>
 
-    <!-- Invisible Text Screen -->
-    <string name="invisible_text_title">Invisible Text</string>
-    <string name="char_type">Character Type</string>
+    <!-- Tricky Content Screen -->
+    <string name="tricky_content_title">Tricky Content</string>
+    <string name="tricky_type">Type</string>
+    <string name="tricky_mode_invisible">Invisible</string>
+    <string name="tricky_mode_voice">Voice Message</string>
+    <string name="tricky_duration">Duration</string>
+    <string name="tricky_chars_unit">chars</string>
     <string name="length">Length</string>
     <string name="copy_to_clipboard">Copy to Clipboard</string>
     <string name="copied_toast">Copied! Paste it anywhere</string>
