@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.ContentCut
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -44,6 +45,7 @@ fun HomeScreen(
     onNavigateToTextSplitter: () -> Unit,
     onNavigateToVideoSplitter: () -> Unit,
     onNavigateToVideoEnhancer: () -> Unit,
+    onNavigateToAudioExtractor: () -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
     // Track screen view
@@ -107,20 +109,23 @@ fun HomeScreen(
         val videoSplitterDesc = stringResource(R.string.tool_video_splitter_desc)
         val videoEnhancerTitle = stringResource(R.string.tool_video_enhancer)
         val videoEnhancerDesc = stringResource(R.string.tool_video_enhancer_desc)
+        val audioExtractorTitle = stringResource(R.string.tool_audio_extractor)
+        val audioExtractorDesc = stringResource(R.string.tool_audio_extractor_desc)
 
-        val tools = remember(textImageTitle, emptyTextTitle, openWaTitle, textSplitterTitle, videoSplitterTitle, videoEnhancerTitle) {
+        val tools = remember(textImageTitle, emptyTextTitle, openWaTitle, textSplitterTitle, videoSplitterTitle, videoEnhancerTitle, audioExtractorTitle) {
             listOf(
                 ToolItem(textImageTitle, textImageDesc, Icons.Default.AutoAwesome, Color(0xFF007AFF)),
                 ToolItem(emptyTextTitle, emptyTextDesc, Icons.Default.VisibilityOff, Color(0xFF5856D6)),
                 ToolItem(openWaTitle, openWaDesc, Icons.Default.Chat, Color(0xFF25D366)),
                 ToolItem(textSplitterTitle, textSplitterDesc, Icons.Default.ContentCut, Color(0xFFFF9500)),
                 ToolItem(videoSplitterTitle, videoSplitterDesc, Icons.Default.VideoLibrary, Color(0xFFFF3B30)),
-                ToolItem(videoEnhancerTitle, videoEnhancerDesc, Icons.Default.AutoFixHigh, Color(0xFF8E44FF))
+                ToolItem(videoEnhancerTitle, videoEnhancerDesc, Icons.Default.AutoFixHigh, Color(0xFF8E44FF)),
+                ToolItem(audioExtractorTitle, audioExtractorDesc, Icons.Default.MusicNote, Color(0xFF00B8A9))
             )
         }
 
-        val onClicks = remember(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa, onNavigateToTextSplitter, onNavigateToVideoSplitter, onNavigateToVideoEnhancer) {
-            listOf(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa, onNavigateToTextSplitter, onNavigateToVideoSplitter, onNavigateToVideoEnhancer)
+        val onClicks = remember(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa, onNavigateToTextSplitter, onNavigateToVideoSplitter, onNavigateToVideoEnhancer, onNavigateToAudioExtractor) {
+            listOf(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa, onNavigateToTextSplitter, onNavigateToVideoSplitter, onNavigateToVideoEnhancer, onNavigateToAudioExtractor)
         }
 
         LazyVerticalGrid(
