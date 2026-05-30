@@ -26,7 +26,7 @@ android {
         applicationId = "tools.mo3ta.fitit"
         minSdk = 24
         targetSdk = 36
-        versionCode = 19
+        versionCode = 20
         versionName = "2.4.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
