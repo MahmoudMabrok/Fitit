@@ -1,6 +1,7 @@
 package tools.mo3ta.fitit.ui.videoenhancer
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaExtractor
@@ -12,6 +13,8 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import java.io.File
 import java.nio.ByteBuffer
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 /**
  * Super-resolution video enhancer backed by a TensorFlow Lite model ([MlSuperResolution]).
@@ -29,9 +32,33 @@ object MlVideoEnhancer {
     private const val VIDEO_MIME = "video/avc"
     private const val TIMEOUT_US = 10_000L
 
+    /**
+     * Each frame is downscaled so its short side is at most this many pixels before super-resolution.
+     * The model upscales by a fixed factor (4×), so a 270px input becomes ~1080px output. This bounds
+     * the per-frame tile count (≈60 instead of ≈860 for a raw 1080p frame), keeping inference fast
+     * enough that progress advances visibly; without it a single frame can take minutes.
+     */
+    private const val ML_INPUT_SHORT_SIDE_CAP = 270
+
     /** True when this engine can run: a model is bundled and the OS supports frame extraction. */
     fun isAvailable(context: Context): Boolean =
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && MlSuperResolution.isModelAvailable(context)
+
+    /**
+     * Downscales [frame] so its short side is at most [ML_INPUT_SHORT_SIDE_CAP], recycling the
+     * original when a smaller copy is produced. Returns [frame] unchanged when it is already small
+     * enough. The caller owns (and must recycle) the returned bitmap.
+     */
+    private fun frameToInput(frame: Bitmap): Bitmap {
+        val shortSide = min(frame.width, frame.height)
+        if (shortSide <= ML_INPUT_SHORT_SIDE_CAP) return frame
+        val factor = ML_INPUT_SHORT_SIDE_CAP.toFloat() / shortSide
+        val w = (frame.width * factor).roundToInt().coerceAtLeast(1)
+        val h = (frame.height * factor).roundToInt().coerceAtLeast(1)
+        val scaled = Bitmap.createScaledBitmap(frame, w, h, true)
+        if (scaled !== frame) frame.recycle()
+        return scaled
+    }
 
     @RequiresApi(Build.VERSION_CODES.P)
     fun enhance(
@@ -60,11 +87,22 @@ object MlVideoEnhancer {
             val frameCount = (metaFrameCount?.takeIf { it > 0 }
                 ?: (durationMs / 1000.0 * frameRate).toInt()).coerceAtLeast(1)
 
-            val firstFrame = retriever.getFrameAtIndex(0) ?: error("Could not read the first video frame")
-            val firstUpscaled = model.upscale(firstFrame)
+            // Throttled progress: tile callbacks fire ~60×/frame, so only forward meaningful steps.
+            var lastReported = -1f
+            fun report(frameIndex: Int, tileFraction: Float) {
+                val p = ((frameIndex + tileFraction) / frameCount * 0.99f).coerceIn(0f, 0.99f)
+                if (p - lastReported >= 0.001f) {
+                    lastReported = p
+                    onProgress(p)
+                }
+            }
+
+            // Process the first frame up front to size the encoder; reuse it as frame 0 below.
+            val firstInput = frameToInput(retriever.getFrameAtIndex(0) ?: error("Could not read the first video frame"))
+            val firstUpscaled = model.upscale(firstInput) { tf -> report(0, tf) }
+            firstInput.recycle()
             val outWidth = evenDimension(firstUpscaled.width)
             val outHeight = evenDimension(firstUpscaled.height)
-            firstFrame.recycle()
 
             val outFormat = MediaFormat.createVideoFormat(VIDEO_MIME, outWidth, outHeight).apply {
                 setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface)
@@ -123,15 +161,18 @@ object MlVideoEnhancer {
                 val upscaled = if (i == 0) {
                     firstUpscaled
                 } else {
-                    val frame = retriever.getFrameAtIndex(i) ?: continue
-                    model.upscale(frame).also { frame.recycle() }
+                    val input = frameToInput(retriever.getFrameAtIndex(i) ?: continue)
+                    model.upscale(input) { tf -> report(i, tf) }.also { input.recycle() }
                 }
+                // The GPU delegate may have switched the current EGL context during inference, so
+                // re-bind the encoder surface before drawing into it.
+                surface.makeCurrent()
                 renderer.draw(upscaled)
                 surface.setPresentationTime(i * frameDurationUs * 1000)
                 surface.swapBuffers()
                 upscaled.recycle()
                 drainEncoder(endOfStream = false)
-                onProgress((i + 1).toFloat() / frameCount * 0.99f)
+                report(i + 1, 0f)
             }
 
             enc.signalEndOfInputStream()

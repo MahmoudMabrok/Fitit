@@ -25,7 +25,11 @@ swapping in a different RGB super-resolution model only requires matching the I/
 - The engine activates only on API 28+ (it uses `MediaMetadataRetriever.getFrameAtIndex`). On older
   devices, or if this file is removed, the enhancer transparently falls back to the OpenGL
   sharpen/upscale engine and shows a short notice in the UI.
-- Because the model has a fixed 50×50 input, each frame is processed as many tiles; per-frame ML
-  inference is **much** slower than the GL engine and is best suited to short clips.
+- Inference runs on the TensorFlow Lite **GPU delegate** when the device supports it, otherwise on a
+  multi-threaded CPU interpreter.
+- Because the model has a fixed 50×50 input, each frame is processed as many tiles. To keep this
+  tractable, frames are downscaled to a ≤270px short side before super-resolution (so output is
+  roughly the original resolution). Even so, per-frame ML inference is **much** slower than the GL
+  engine and is best suited to short clips; progress is reported per tile so the UI stays responsive.
 - `.tflite` files are kept uncompressed in the APK (see `noCompress` in `app/build.gradle.kts`) so the
   interpreter can memory-map them.

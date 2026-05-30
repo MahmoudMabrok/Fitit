@@ -110,6 +110,13 @@ Follows the existing ViewModel + Composable screen pattern.
 - Synchronous single pass on a background dispatcher; very large clips will be slow.
 - The ML engine needs a bundled `.tflite` model and API 28+ (uses `getFrameAtIndex`); it is
   per-frame and noticeably slower, best for short clips. Without a model it falls back to GL.
+  - It runs on the TFLite **GPU delegate** when the device supports it, falling back to a
+    multi-threaded CPU interpreter otherwise (`MlSuperResolution.buildInterpreter`).
+  - Each frame is downscaled so its short side is ≤270px before super-resolution
+    (`ML_INPUT_SHORT_SIDE_CAP`), bounding the per-frame tile count (~60 vs ~860 for raw 1080p)
+    so inference stays fast enough that progress advances. Output is ~the source resolution.
+  - Progress is reported **per tile** (`upscale(onTileProgress)`), so the bar moves from the first
+    tile instead of only after each full frame.
 - AVC encoder only; could detect HEVC support for smaller files.
 - Capture frame rate is read from metadata and falls back to 30 fps when absent.
 - Audio is written after the full video pass (functionally correct, not perfectly
