@@ -35,6 +35,15 @@ data class OutputSpec(
     val bitrate: Int,
 )
 
+/**
+ * Selects which engine processes the frames.
+ *
+ *  - [GL] the always-available OpenGL ES sharpen/grade/upscale pipeline.
+ *  - [ML] a TensorFlow Lite super-resolution model (see [MlSuperResolution]). When the model asset
+ *    is not bundled with the build, [VideoEnhancer] transparently falls back to [GL].
+ */
+enum class EnhanceEngine { GL, ML }
+
 const val MIN_OUTPUT_BITRATE = 1_000_000      // 1 Mbps floor so low-res clips still look clean
 const val MAX_OUTPUT_BITRATE = 40_000_000     // 40 Mbps ceiling to keep file sizes sane
 const val DEFAULT_FRAME_RATE = 30
@@ -66,11 +75,20 @@ fun computeOutputSpec(
     val width = evenDimension((srcWidth * scale).roundToInt())
     val height = evenDimension((srcHeight * scale).roundToInt())
 
-    val fps = frameRate.coerceIn(1, 60)
-    val rawBitrate = width.toLong() * height.toLong() * fps * level.bitsPerPixel
-    val bitrate = rawBitrate.toLong().coerceIn(MIN_OUTPUT_BITRATE.toLong(), MAX_OUTPUT_BITRATE.toLong()).toInt()
+    val bitrate = encoderBitrate(width, height, frameRate, level.bitsPerPixel)
 
     return OutputSpec(width, height, bitrate)
+}
+
+/**
+ * Derives an H.264 target bitrate from the output resolution and frame rate, clamped to the
+ * [MIN_OUTPUT_BITRATE]..[MAX_OUTPUT_BITRATE] range. Shared by the GL and ML engines so both produce
+ * comparably-sized files for the same output dimensions.
+ */
+fun encoderBitrate(width: Int, height: Int, frameRate: Int, bitsPerPixel: Double): Int {
+    val fps = frameRate.coerceIn(1, 60)
+    val raw = width.toLong() * height.toLong() * fps * bitsPerPixel
+    return raw.toLong().coerceIn(MIN_OUTPUT_BITRATE.toLong(), MAX_OUTPUT_BITRATE.toLong()).toInt()
 }
 
 fun formatFileSize(bytes: Long): String {

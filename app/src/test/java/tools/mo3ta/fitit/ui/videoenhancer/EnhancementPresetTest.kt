@@ -75,4 +75,17 @@ class EnhancementPresetTest {
     fun `zero dimension throws`() {
         computeOutputSpec(0, 720, 30, EnhancementLevel.STANDARD)
     }
+
+    @Test
+    fun `encoderBitrate respects floor and ceiling`() {
+        assertTrue(encoderBitrate(160, 120, 24, 0.10) >= MIN_OUTPUT_BITRATE)
+        assertTrue(encoderBitrate(3840, 2160, 60, 0.20) <= MAX_OUTPUT_BITRATE)
+    }
+
+    @Test
+    fun `encoderBitrate matches computeOutputSpec for the same dimensions`() {
+        // A 1080p clip at MAX is never upscaled, so the spec bitrate must equal the shared helper's.
+        val spec = computeOutputSpec(1920, 1080, 30, EnhancementLevel.MAX)
+        assertEquals(encoderBitrate(1920, 1080, 30, EnhancementLevel.MAX.bitsPerPixel), spec.bitrate)
+    }
 }

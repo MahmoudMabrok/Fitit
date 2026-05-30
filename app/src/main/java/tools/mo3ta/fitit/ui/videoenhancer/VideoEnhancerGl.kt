@@ -1,5 +1,6 @@
 package tools.mo3ta.fitit.ui.videoenhancer
 
+import android.graphics.Bitmap
 import android.graphics.SurfaceTexture
 import android.opengl.EGL14
 import android.opengl.EGLConfig
@@ -9,6 +10,7 @@ import android.opengl.EGLExt
 import android.opengl.EGLSurface
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
+import android.opengl.GLUtils
 import android.view.Surface
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -300,6 +302,118 @@ class FrameRenderer(
                 color = mix(vec3(luma), color, uSaturation);
 
                 gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
+            }
+        """
+    }
+}
+
+/**
+ * Draws an upscaled [Bitmap] (produced by the ML super-resolution pass) onto the encoder's input
+ * surface via a plain 2D texture. The bitmap is stretched across the whole output viewport, so the
+ * encoder must be configured at the bitmap's dimensions (rounded to even) to avoid distortion.
+ */
+class BitmapRenderer(private val outputWidth: Int, private val outputHeight: Int) {
+
+    private val program: Int
+    private val aPositionLoc: Int
+    private val aTextureCoordLoc: Int
+    private val textureId: Int
+
+    private val quad: FloatBuffer = ByteBuffer
+        .allocateDirect(QUAD.size * 4)
+        .order(ByteOrder.nativeOrder())
+        .asFloatBuffer()
+        .apply { put(QUAD); position(0) }
+
+    init {
+        val vs = compileShader(GLES20.GL_VERTEX_SHADER, VERTEX_SHADER)
+        val fs = compileShader(GLES20.GL_FRAGMENT_SHADER, FRAGMENT_SHADER)
+        program = GLES20.glCreateProgram()
+        GLES20.glAttachShader(program, vs)
+        GLES20.glAttachShader(program, fs)
+        GLES20.glLinkProgram(program)
+        val linked = IntArray(1)
+        GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, linked, 0)
+        check(linked[0] == GLES20.GL_TRUE) { "Program link failed: ${GLES20.glGetProgramInfoLog(program)}" }
+        GLES20.glDeleteShader(vs)
+        GLES20.glDeleteShader(fs)
+
+        aPositionLoc = GLES20.glGetAttribLocation(program, "aPosition")
+        aTextureCoordLoc = GLES20.glGetAttribLocation(program, "aTextureCoord")
+
+        val textures = IntArray(1)
+        GLES20.glGenTextures(1, textures, 0)
+        textureId = textures[0]
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
+    }
+
+    fun draw(bitmap: Bitmap) {
+        GLES20.glViewport(0, 0, outputWidth, outputHeight)
+        GLES20.glClearColor(0f, 0f, 0f, 1f)
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
+        GLES20.glUseProgram(program)
+
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId)
+        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0)
+
+        quad.position(0)
+        GLES20.glEnableVertexAttribArray(aPositionLoc)
+        GLES20.glVertexAttribPointer(aPositionLoc, 2, GLES20.GL_FLOAT, false, STRIDE, quad)
+
+        quad.position(2)
+        GLES20.glEnableVertexAttribArray(aTextureCoordLoc)
+        GLES20.glVertexAttribPointer(aTextureCoordLoc, 2, GLES20.GL_FLOAT, false, STRIDE, quad)
+
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
+
+        GLES20.glDisableVertexAttribArray(aPositionLoc)
+        GLES20.glDisableVertexAttribArray(aTextureCoordLoc)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+    }
+
+    private fun compileShader(type: Int, src: String): Int {
+        val shader = GLES20.glCreateShader(type)
+        GLES20.glShaderSource(shader, src)
+        GLES20.glCompileShader(shader)
+        val compiled = IntArray(1)
+        GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compiled, 0)
+        check(compiled[0] == GLES20.GL_TRUE) { "Shader compile failed: ${GLES20.glGetShaderInfoLog(shader)}" }
+        return shader
+    }
+
+    companion object {
+        private const val STRIDE = 4 * 4
+
+        // x, y, u, v — full-screen triangle strip. The V coordinate is flipped because Android
+        // bitmaps are top-left origin whereas GL samples bottom-left.
+        private val QUAD = floatArrayOf(
+            -1f, -1f, 0f, 1f,
+            1f, -1f, 1f, 1f,
+            -1f, 1f, 0f, 0f,
+            1f, 1f, 1f, 0f,
+        )
+
+        private const val VERTEX_SHADER = """
+            attribute vec4 aPosition;
+            attribute vec4 aTextureCoord;
+            varying vec2 vTextureCoord;
+            void main() {
+                gl_Position = aPosition;
+                vTextureCoord = aTextureCoord.xy;
+            }
+        """
+
+        private const val FRAGMENT_SHADER = """
+            precision mediump float;
+            varying vec2 vTextureCoord;
+            uniform sampler2D sTexture;
+            void main() {
+                gl_FragColor = texture2D(sTexture, vTextureCoord);
             }
         """
     }
