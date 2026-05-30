@@ -164,4 +164,24 @@
     <string name="video_enhancer_share">Share</string>
     <string name="video_enhancer_no_player">No video player app found</string>
     <string name="video_enhancer_error_generic">Enhancement failed, please try again</string>
+
+    <!-- Media Merger Screen -->
+    <string name="tool_media_merger">Media Merger</string>
+    <string name="tool_media_merger_desc">Combine several clips of the same type into one file</string>
+    <string name="media_merger_title">Media Merger</string>
+    <string name="media_merger_feature_desc">Pick a type, add two or more clips of the same type, reorder them, then merge into a single file. Works best when clips share the same format. Everything runs on your device.</string>
+    <string name="media_merger_type_video">Video</string>
+    <string name="media_merger_type_audio">Audio</string>
+    <string name="media_merger_add">Add media</string>
+    <string name="media_merger_add_hint">Pick up to %d clips of the selected type</string>
+    <string name="media_merger_order_hint">Drag order — clips merge top to bottom</string>
+    <string name="media_merger_clear">Clear all</string>
+    <string name="media_merger_merge_button">Merge</string>
+    <string name="media_merger_result_title">Merged file ready</string>
+    <string name="media_merger_preview">Preview</string>
+    <string name="media_merger_save">Save</string>
+    <string name="media_merger_saved">Saved</string>
+    <string name="media_merger_share">Share</string>
+    <string name="media_merger_no_player">No player app found</string>
+    <string name="media_merger_error_generic">Merge failed. Make sure the clips share the same format.</string>
 </resources>

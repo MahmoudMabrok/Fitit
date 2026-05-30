@@ -54,6 +54,16 @@ object AnalyticsManager {
 
     fun trackVideoEnhanceShared() = log("zaki_video_enhance_shared")
 
+    fun trackMediaMergeStarted(type: String, count: Int) =
+        log("zaki_media_merge_started", "type" to type, "count" to count.toString())
+
+    fun trackMediaMergeCompleted(type: String) =
+        log("zaki_media_merge_completed", "type" to type)
+
+    fun trackMediaMergeSaved() = log("zaki_media_merge_saved")
+
+    fun trackMediaMergeShared() = log("zaki_media_merge_shared")
+
     private fun log(name: String, vararg params: Pair<String, String>) {
         val bundle = Bundle()
         params.forEach { (key, value) -> bundle.putString(key, value) }
