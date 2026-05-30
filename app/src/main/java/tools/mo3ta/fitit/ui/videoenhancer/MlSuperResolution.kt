@@ -68,6 +68,9 @@ class MlSuperResolution private constructor(
     private val outTileSize = tileSize * scale
     private val outputPixels = IntArray(outTileSize * outTileSize)
 
+    // Reused across every tile of every frame so the hot loop allocates no per-tile bitmaps.
+    private val outputTile = Bitmap.createBitmap(outTileSize, outTileSize, Bitmap.Config.ARGB_8888)
+
     private val inputBuffer: ByteBuffer = ByteBuffer
         .allocateDirect(tileSize * tileSize * CHANNELS * if (inputIsFloat) 4 else 1)
         .order(ByteOrder.nativeOrder())
@@ -124,8 +127,9 @@ class MlSuperResolution private constructor(
             val validH = t.srcH * scale
             val dstX = t.srcX * scale
             val dstY = t.srcY * scale
+            outputTile.setPixels(outputPixels, 0, outTileSize, 0, 0, outTileSize, outTileSize)
             resultCanvas.drawBitmap(
-                Bitmap.createBitmap(outputPixels, outTileSize, outTileSize, Bitmap.Config.ARGB_8888),
+                outputTile,
                 Rect(0, 0, validW, validH),
                 Rect(dstX, dstY, dstX + validW, dstY + validH),
                 null,
@@ -174,6 +178,7 @@ class MlSuperResolution private constructor(
     override fun close() {
         interpreter.close()
         runCatching { delegate?.close() }
+        runCatching { outputTile.recycle() }
     }
 
     companion object {
