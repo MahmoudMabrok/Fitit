@@ -64,7 +64,7 @@ class MediaMergerViewModel(application: Application) : AndroidViewModel(applicat
     val isMergeEnabled: Boolean
         get() = canMerge(items.size, isProcessing)
 
-    fun setMediaType(type: MediaType) {
+    fun selectMediaType(type: MediaType) {
         if (type == mediaType) return
         mediaType = type
         items = emptyList()

@@ -129,7 +129,7 @@ fun MediaMergerScreen(
                     selected = viewModel.mediaType,
                     videoLabel = stringResource(R.string.media_merger_type_video),
                     audioLabel = stringResource(R.string.media_merger_type_audio),
-                    onSelect = { viewModel.setMediaType(it) }
+                    onSelect = { viewModel.selectMediaType(it) }
                 )
             }
 
