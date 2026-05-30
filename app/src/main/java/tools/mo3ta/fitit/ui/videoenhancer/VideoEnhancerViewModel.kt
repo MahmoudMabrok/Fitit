@@ -51,7 +51,7 @@ class VideoEnhancerViewModel(application: Application) : AndroidViewModel(applic
     val isEnhanceEnabled: Boolean
         get() = selectedVideoUri != null && isDurationValid && !isProcessing
 
-    fun setLevel(newLevel: EnhancementLevel) {
+    fun changeLevel(newLevel: EnhancementLevel) {
         if (isProcessing) return
         level = newLevel
         resetResult()

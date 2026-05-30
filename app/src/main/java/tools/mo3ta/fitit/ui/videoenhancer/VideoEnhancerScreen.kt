@@ -129,7 +129,7 @@ fun VideoEnhancerScreen(
                     selected = viewModel.level,
                     enabled = !viewModel.isProcessing,
                     label = stringResource(R.string.video_enhancer_level_label),
-                    onSelect = viewModel::setLevel,
+                    onSelect = viewModel::changeLevel,
                 )
             }
 
