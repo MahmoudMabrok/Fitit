@@ -164,6 +164,8 @@
     <string name="video_enhancer_share">مشاركة</string>
     <string name="video_enhancer_no_player">لا يوجد تطبيق لتشغيل الفيديو</string>
     <string name="video_enhancer_error_generic">فشل تحسين الفيديو، حاول مرة أخرى</string>
+
+    <!-- Audio Extractor Screen -->
     <string name="tool_audio_extractor">استخراج الصوت</string>
     <string name="tool_audio_extractor_desc">افصل الصوت من الفيديو بصيغة WAV أو M4A</string>
     <string name="audio_extractor_title">استخراج الصوت</string>
@@ -181,4 +183,24 @@
     <string name="audio_extractor_share">مشاركة</string>
     <string name="audio_extractor_no_audio">هذا الفيديو لا يحتوي على صوت</string>
     <string name="audio_extractor_error_generic">فشل استخراج الصوت، حاول مرة أخرى</string>
+
+    <!-- Media Merger Screen -->
+    <string name="tool_media_merger">دمج الوسائط</string>
+    <string name="tool_media_merger_desc">ادمج عدة مقاطع من نفس النوع في ملف واحد</string>
+    <string name="media_merger_title">دمج الوسائط</string>
+    <string name="media_merger_feature_desc">اختر النوع، أضف مقطعين أو أكثر من نفس النوع، أعد ترتيبهم ثم ادمجهم في ملف واحد. تكون النتيجة أفضل عندما تتشارك المقاطع نفس الصيغة. تتم كل المعالجة على جهازك.</string>
+    <string name="media_merger_type_video">فيديو</string>
+    <string name="media_merger_type_audio">صوت</string>
+    <string name="media_merger_add">إضافة وسائط</string>
+    <string name="media_merger_add_hint">اختر حتى %d مقاطع من النوع المحدد</string>
+    <string name="media_merger_order_hint">رتّب المقاطع — تُدمج من الأعلى للأسفل</string>
+    <string name="media_merger_clear">مسح الكل</string>
+    <string name="media_merger_merge_button">دمج</string>
+    <string name="media_merger_result_title">الملف المدموج جاهز</string>
+    <string name="media_merger_preview">معاينة</string>
+    <string name="media_merger_save">حفظ</string>
+    <string name="media_merger_saved">تم الحفظ</string>
+    <string name="media_merger_share">مشاركة</string>
+    <string name="media_merger_no_player">لا يوجد تطبيق للتشغيل</string>
+    <string name="media_merger_error_generic">فشل الدمج. تأكد من أن المقاطع تتشارك نفس الصيغة.</string>
 </resources>

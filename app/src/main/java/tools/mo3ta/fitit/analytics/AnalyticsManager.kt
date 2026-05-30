@@ -54,6 +54,16 @@ object AnalyticsManager {
 
     fun trackVideoEnhanceShared() = log("zaki_video_enhance_shared")
 
+    fun trackMediaMergeStarted(type: String, count: Int) =
+        log("zaki_media_merge_started", "type" to type, "count" to count.toString())
+
+    fun trackMediaMergeCompleted(type: String) =
+        log("zaki_media_merge_completed", "type" to type)
+
+    fun trackMediaMergeSaved() = log("zaki_media_merge_saved")
+
+    fun trackMediaMergeShared() = log("zaki_media_merge_shared")
+
     fun trackAudioExtractStarted(format: String) =
         log("zaki_audio_extract_started", "format" to format)
 

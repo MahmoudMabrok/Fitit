@@ -14,6 +14,7 @@ import tools.mo3ta.fitit.analytics.AnalyticsManager
 import tools.mo3ta.fitit.data.ThemeMode
 import tools.mo3ta.fitit.ui.HomeScreen
 import tools.mo3ta.fitit.ui.emptytext.EmptyTextScreen
+import tools.mo3ta.fitit.ui.mediamerger.MediaMergerScreen
 import tools.mo3ta.fitit.ui.onboarding.OnboardingScreen
 import tools.mo3ta.fitit.ui.openwa.OpenWaScreen
 import tools.mo3ta.fitit.ui.settings.SettingsScreen
@@ -70,6 +71,7 @@ class MainActivity : ComponentActivity() {
                         onNavigateToTextSplitter = { navController.navigate("text_splitter") },
                         onNavigateToVideoSplitter = { navController.navigate("video_splitter") },
                         onNavigateToVideoEnhancer = { navController.navigate("video_enhancer") },
+                        onNavigateToMediaMerger = { navController.navigate("media_merger") },
                         onNavigateToAudioExtractor = { navController.navigate("audio_extractor") },
                         onNavigateToSettings = { navController.navigate("settings") }
                     )
@@ -94,6 +96,9 @@ class MainActivity : ComponentActivity() {
                 }
                 composable("video_enhancer") {
                     VideoEnhancerScreen(onBack = { navController.popBackStack() })
+                }
+                composable("media_merger") {
+                    MediaMergerScreen(onBack = { navController.popBackStack() })
                 }
                 composable("audio_extractor") {
                     AudioExtractorScreen(onBack = { navController.popBackStack() })

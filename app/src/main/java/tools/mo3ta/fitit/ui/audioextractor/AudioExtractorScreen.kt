@@ -44,8 +44,8 @@ import tools.mo3ta.fitit.R
 import tools.mo3ta.fitit.analytics.AnalyticsManager
 import java.util.Locale
 
-private val TealAccent = Color(0xFF00B8A9)
-private val TealDark = Color(0xFF008577)
+private val TealAccent = Color(0xFFEC407A)
+private val TealDark = Color(0xFFC2185B)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.ContentCut
+import androidx.compose.material.icons.filled.MergeType
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VideoLibrary
@@ -45,6 +46,7 @@ fun HomeScreen(
     onNavigateToTextSplitter: () -> Unit,
     onNavigateToVideoSplitter: () -> Unit,
     onNavigateToVideoEnhancer: () -> Unit,
+    onNavigateToMediaMerger: () -> Unit,
     onNavigateToAudioExtractor: () -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
@@ -109,10 +111,12 @@ fun HomeScreen(
         val videoSplitterDesc = stringResource(R.string.tool_video_splitter_desc)
         val videoEnhancerTitle = stringResource(R.string.tool_video_enhancer)
         val videoEnhancerDesc = stringResource(R.string.tool_video_enhancer_desc)
+        val mediaMergerTitle = stringResource(R.string.tool_media_merger)
+        val mediaMergerDesc = stringResource(R.string.tool_media_merger_desc)
         val audioExtractorTitle = stringResource(R.string.tool_audio_extractor)
         val audioExtractorDesc = stringResource(R.string.tool_audio_extractor_desc)
 
-        val tools = remember(textImageTitle, emptyTextTitle, openWaTitle, textSplitterTitle, videoSplitterTitle, videoEnhancerTitle, audioExtractorTitle) {
+        val tools = remember(textImageTitle, emptyTextTitle, openWaTitle, textSplitterTitle, videoSplitterTitle, videoEnhancerTitle, mediaMergerTitle, audioExtractorTitle) {
             listOf(
                 ToolItem(textImageTitle, textImageDesc, Icons.Default.AutoAwesome, Color(0xFF007AFF)),
                 ToolItem(emptyTextTitle, emptyTextDesc, Icons.Default.VisibilityOff, Color(0xFF5856D6)),
@@ -120,12 +124,13 @@ fun HomeScreen(
                 ToolItem(textSplitterTitle, textSplitterDesc, Icons.Default.ContentCut, Color(0xFFFF9500)),
                 ToolItem(videoSplitterTitle, videoSplitterDesc, Icons.Default.VideoLibrary, Color(0xFFFF3B30)),
                 ToolItem(videoEnhancerTitle, videoEnhancerDesc, Icons.Default.AutoFixHigh, Color(0xFF8E44FF)),
-                ToolItem(audioExtractorTitle, audioExtractorDesc, Icons.Default.MusicNote, Color(0xFF00B8A9))
+                ToolItem(mediaMergerTitle, mediaMergerDesc, Icons.Default.MergeType, Color(0xFF00B5AD)),
+                ToolItem(audioExtractorTitle, audioExtractorDesc, Icons.Default.MusicNote, Color(0xFFEC407A))
             )
         }
 
-        val onClicks = remember(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa, onNavigateToTextSplitter, onNavigateToVideoSplitter, onNavigateToVideoEnhancer, onNavigateToAudioExtractor) {
-            listOf(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa, onNavigateToTextSplitter, onNavigateToVideoSplitter, onNavigateToVideoEnhancer, onNavigateToAudioExtractor)
+        val onClicks = remember(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa, onNavigateToTextSplitter, onNavigateToVideoSplitter, onNavigateToVideoEnhancer, onNavigateToMediaMerger, onNavigateToAudioExtractor) {
+            listOf(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa, onNavigateToTextSplitter, onNavigateToVideoSplitter, onNavigateToVideoEnhancer, onNavigateToMediaMerger, onNavigateToAudioExtractor)
         }
 
         LazyVerticalGrid(
