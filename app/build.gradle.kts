@@ -94,6 +94,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.coil.compose)
     implementation(libs.tensorflow.lite)
+    implementation(libs.tensorflow.lite.gpu)
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation("com.google.firebase:firebase-analytics:22.2.0")
     implementation(libs.firebase.crashlytics)

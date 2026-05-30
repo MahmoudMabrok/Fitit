@@ -150,7 +150,7 @@
     <string name="video_enhancer_level_standard">قياسي</string>
     <string name="video_enhancer_level_max">أقصى</string>
     <string name="video_enhancer_ai_label">تحسين بالذكاء الاصطناعي</string>
-    <string name="video_enhancer_ai_desc">استخدم نموذج TensorFlow Lite على جهازك لإعادة بناء التفاصيل. تجريبي وأبطأ.</string>
+    <string name="video_enhancer_ai_desc">أعد بناء التفاصيل بنموذج ذكاء اصطناعي على جهازك (يستخدم معالج الرسومات عند توفّره). تجريبي وبطيء — الأفضل للمقاطع القصيرة.</string>
     <string name="video_enhancer_ai_unavailable">لا يوجد نموذج ذكاء اصطناعي مضمّن — يُستخدم المحرّك القياسي.</string>
     <string name="video_enhancer_ai_fallback">نموذج الذكاء الاصطناعي غير متوفر؛ تم التحسين بالمحرّك القياسي.</string>
     <string name="video_enhancer_enhance_button">تحسين الفيديو</string>

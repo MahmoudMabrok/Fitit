@@ -6,6 +6,8 @@ import android.graphics.Canvas
 import android.graphics.Rect
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
+import org.tensorflow.lite.gpu.CompatibilityList
+import org.tensorflow.lite.gpu.GpuDelegate
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -55,6 +57,7 @@ fun planSrTiles(width: Int, height: Int, tile: Int): List<SrTile> {
  */
 class MlSuperResolution private constructor(
     private val interpreter: Interpreter,
+    private val delegate: AutoCloseable?,
     val tileSize: Int,
     val scale: Int,
     private val inputIsFloat: Boolean,
@@ -72,14 +75,20 @@ class MlSuperResolution private constructor(
         .allocateDirect(outTileSize * outTileSize * CHANNELS * if (outputIsFloat) 4 else 1)
         .order(ByteOrder.nativeOrder())
 
-    /** Returns a new bitmap that is [scale]x the size of [source]. The caller owns the result. */
-    fun upscale(source: Bitmap): Bitmap {
+    /**
+     * Returns a new bitmap that is [scale]x the size of [source]. The caller owns the result.
+     *
+     * [onTileProgress] is invoked with a 0f..1f fraction as each tile completes, so callers can drive
+     * a responsive progress bar during the (potentially slow) per-frame inference.
+     */
+    fun upscale(source: Bitmap, onTileProgress: (Float) -> Unit = {}): Bitmap {
         val result = Bitmap.createBitmap(source.width * scale, source.height * scale, Bitmap.Config.ARGB_8888)
         val resultCanvas = Canvas(result)
         val tileBitmap = Bitmap.createBitmap(tileSize, tileSize, Bitmap.Config.ARGB_8888)
         val tileCanvas = Canvas(tileBitmap)
 
-        for (t in planSrTiles(source.width, source.height, tileSize)) {
+        val tiles = planSrTiles(source.width, source.height, tileSize)
+        for ((index, t) in tiles.withIndex()) {
             // Copy the (possibly partial) tile into a full tileSize square, extending the edge pixels
             // so the model never sees black padding that would bleed into the stitched result.
             tileCanvas.drawBitmap(
@@ -121,6 +130,7 @@ class MlSuperResolution private constructor(
                 Rect(dstX, dstY, dstX + validW, dstY + validH),
                 null,
             )
+            onTileProgress((index + 1).toFloat() / tiles.size)
         }
         tileBitmap.recycle()
         return result
@@ -161,7 +171,10 @@ class MlSuperResolution private constructor(
         return value.coerceIn(0, 255)
     }
 
-    override fun close() = interpreter.close()
+    override fun close() {
+        interpreter.close()
+        runCatching { delegate?.close() }
+    }
 
     companion object {
         const val MODEL_ASSET = "models/super_resolution.tflite"
@@ -184,7 +197,7 @@ class MlSuperResolution private constructor(
                     channel.map(java.nio.channels.FileChannel.MapMode.READ_ONLY, afd.startOffset, afd.declaredLength)
                 }
             }
-            val interpreter = Interpreter(modelBuffer, Interpreter.Options().apply { setNumThreads(4) })
+            val (interpreter, delegate) = buildInterpreter(modelBuffer)
 
             val inputTensor = interpreter.getInputTensor(0)
             val inputIsFloat = inputTensor.dataType() == DataType.FLOAT32
@@ -202,7 +215,35 @@ class MlSuperResolution private constructor(
             val outputSide = outputTensor.shape().getOrElse(1) { tile }
             val scale = (outputSide / tile).coerceAtLeast(1)
 
-            MlSuperResolution(interpreter, tile, scale, inputIsFloat, outputIsFloat)
+            MlSuperResolution(interpreter, delegate, tile, scale, inputIsFloat, outputIsFloat)
         }.getOrNull()
+
+        /**
+         * Builds an [Interpreter], preferring the GPU delegate when this device supports it (a large
+         * speedup for the convolution-heavy super-resolution model). Falls back to a multi-threaded
+         * CPU interpreter if the GPU delegate is unavailable or fails to initialise. Returns the
+         * interpreter together with the delegate to close (or null when running on CPU).
+         */
+        private fun buildInterpreter(model: java.nio.ByteBuffer): Pair<Interpreter, AutoCloseable?> {
+            try {
+                CompatibilityList().use { compat ->
+                    if (compat.isDelegateSupportedOnThisDevice) {
+                        val gpu = GpuDelegate(compat.bestOptionsForThisDevice)
+                        try {
+                            val options = Interpreter.Options()
+                            options.addDelegate(gpu)
+                            // GpuDelegate exposes close() but isn't typed AutoCloseable, so wrap it.
+                            return Interpreter(model, options) to AutoCloseable { gpu.close() }
+                        } catch (t: Throwable) {
+                            runCatching { gpu.close() }
+                            throw t
+                        }
+                    }
+                }
+            } catch (_: Throwable) {
+                // GPU not usable on this device/model — fall through to CPU.
+            }
+            return Interpreter(model, Interpreter.Options().apply { setNumThreads(4) }) to null
+        }
     }
 }
