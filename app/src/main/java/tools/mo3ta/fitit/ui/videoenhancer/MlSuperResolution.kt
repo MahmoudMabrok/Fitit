@@ -44,12 +44,14 @@ fun planSrTiles(width: Int, height: Int, tile: Int): List<SrTile> {
  *
  * The class is engine-agnostic about the exact model: it reads the input/output tensor shapes to
  * derive the tile size and scale, tiles each frame so arbitrarily-sized video frames fit the model's
- * fixed input, and stitches the upscaled tiles back together. Float models are fed normalised RGB in
- * `[0, 1]`; quantised (uint8) models are fed raw bytes.
+ * fixed input, and stitches the upscaled tiles back together. Float models are fed RGB in `[0, 255]`
+ * (the convention of the bundled ESRGAN-TF2 model) and their `[0, 255]` output is clamped; quantised
+ * (uint8) models are fed and read as raw bytes. If you swap in a model that expects normalised
+ * `[0, 1]` input, adjust [writeInput] / [nextChannel] accordingly.
  *
- * The model file is expected at `assets/[MODEL_ASSET]`. It is intentionally *not* bundled with the
- * repo (multi-MB binary); when it is absent the video enhancer falls back to the GL pipeline. See the
- * KDoc on [VideoEnhancer] and the feature README for how to add one.
+ * The model file is expected at `assets/[MODEL_ASSET]`. The repo bundles a 4× ESRGAN-TF2 export
+ * (input `[1, 50, 50, 3]`, output `[1, 200, 200, 3]`); when it is absent the video enhancer falls
+ * back to the GL pipeline. See the feature README for details.
  */
 class MlSuperResolution private constructor(
     private val interpreter: Interpreter,
@@ -132,9 +134,9 @@ class MlSuperResolution private constructor(
             val g = (pixel shr 8) and 0xFF
             val b = pixel and 0xFF
             if (inputIsFloat) {
-                inputBuffer.putFloat(r / 255f)
-                inputBuffer.putFloat(g / 255f)
-                inputBuffer.putFloat(b / 255f)
+                inputBuffer.putFloat(r.toFloat())
+                inputBuffer.putFloat(g.toFloat())
+                inputBuffer.putFloat(b.toFloat())
             } else {
                 inputBuffer.put(r.toByte())
                 inputBuffer.put(g.toByte())
@@ -154,7 +156,8 @@ class MlSuperResolution private constructor(
     }
 
     private fun nextChannel(): Int {
-        val value = if (outputIsFloat) (outputBuffer.float * 255f).toInt() else outputBuffer.get().toInt() and 0xFF
+        // Float models emit RGB already in [0, 255]; uint8 models emit raw bytes.
+        val value = if (outputIsFloat) outputBuffer.float.toInt() else outputBuffer.get().toInt() and 0xFF
         return value.coerceIn(0, 255)
     }
 
