@@ -95,6 +95,9 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.tensorflow.lite)
     implementation(libs.tensorflow.lite.gpu)
+    // gpu-api holds GpuDelegateFactory (the GpuDelegate ctor's parameter type); it is not pulled
+    // transitively by tensorflow-lite-gpu, so the GPU delegate code won't compile without it.
+    implementation(libs.tensorflow.lite.gpu.api)
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation("com.google.firebase:firebase-analytics:22.2.0")
     implementation(libs.firebase.crashlytics)
