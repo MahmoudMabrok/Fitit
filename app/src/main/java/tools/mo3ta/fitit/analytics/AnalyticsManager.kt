@@ -44,6 +44,16 @@ object AnalyticsManager {
 
     fun trackVideoChunkPreviewed() = log("zaki_video_chunk_previewed")
 
+    fun trackVideoEnhanceStarted(durationMs: Long, level: String) =
+        log("zaki_video_enhance_started", "duration_ms" to durationMs.toString(), "level" to level)
+
+    fun trackVideoEnhanceCompleted(level: String) =
+        log("zaki_video_enhance_completed", "level" to level)
+
+    fun trackVideoEnhanceSaved() = log("zaki_video_enhance_saved")
+
+    fun trackVideoEnhanceShared() = log("zaki_video_enhance_shared")
+
     private fun log(name: String, vararg params: Pair<String, String>) {
         val bundle = Bundle()
         params.forEach { (key, value) -> bundle.putString(key, value) }
