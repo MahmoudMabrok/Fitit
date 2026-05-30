@@ -233,7 +233,10 @@ class MlSuperResolution private constructor(
                             val options = Interpreter.Options()
                             options.addDelegate(gpu)
                             // GpuDelegate exposes close() but isn't typed AutoCloseable, so wrap it.
-                            return Interpreter(model, options) to AutoCloseable { gpu.close() }
+                            val closer = object : AutoCloseable {
+                                override fun close() { gpu.close() }
+                            }
+                            return Interpreter(model, options) to closer
                         } catch (t: Throwable) {
                             runCatching { gpu.close() }
                             throw t
