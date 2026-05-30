@@ -1,22 +1,31 @@
 # AI super-resolution model
 
-The video enhancer's **AI super-resolution** engine ([MlSuperResolution]) loads a TensorFlow Lite
-model from this folder at runtime. The binary is intentionally **not** committed (it is several MB and
-device-specific), so the engine is inert until you drop one in.
+The video enhancer's **AI super-resolution** engine ([MlSuperResolution]) loads
+`super_resolution.tflite` from this folder at runtime.
 
-## How to enable it
+## Bundled model
 
-1. Obtain or train an RGB super-resolution `.tflite` model (e.g. an ESRGAN / Real-ESRGAN export, or
-   the TF Hub ESRGAN model). It must:
-   - take an input tensor shaped `[1, H, W, 3]` (fixed or dynamic),
-   - return an output tensor shaped `[1, H * scale, W * scale, 3]`,
-   - use `FLOAT32` (RGB normalised to `[0, 1]`) or `UINT8` tensors.
-2. Save it here as **`super_resolution.tflite`** (see `MlSuperResolution.MODEL_ASSET`).
-3. Rebuild. The "AI super-resolution" toggle in the enhancer becomes active on API 28+ devices.
+`super_resolution.tflite` is the **ESRGAN-TF2** 4× super-resolution model exported to TensorFlow
+Lite.
 
-When the file is absent — or on API < 28 — the enhancer transparently falls back to the OpenGL
-sharpen/upscale engine and shows a short notice in the UI.
+- Source: <https://tfhub.dev/captain-pool/esrgan-tf2> (mirror:
+  `https://storage.googleapis.com/download.tensorflow.org/models/tflite/esrgan/ESRGAN.tflite`)
+- License: Apache-2.0
+- Input: `[1, 50, 50, 3]` float32, RGB in `[0, 255]`
+- Output: `[1, 200, 200, 3]` float32, RGB in `[0, 255]` (4× scale)
+- Size: ~4.8 MB, SHA-256 `1a380d3744103e11ef343534aaff54815cae40769dcd00c023652a7e5bc47f4b`
 
-> Note: per-frame ML inference is much slower than the GL engine and is best suited to short clips.
-> `.tflite` files are kept uncompressed in the APK (see `noCompress` in `app/build.gradle.kts`) so the
-> interpreter can memory-map them.
+`MlSuperResolution` reads the tile size (50) and scale (4) from the tensor shapes automatically, so
+swapping in a different RGB super-resolution model only requires matching the I/O conventions above
+(adjust the float normalisation in `MlSuperResolution.writeInput` / `nextChannel` if your model uses
+`[0, 1]` instead of `[0, 255]`).
+
+## Notes
+
+- The engine activates only on API 28+ (it uses `MediaMetadataRetriever.getFrameAtIndex`). On older
+  devices, or if this file is removed, the enhancer transparently falls back to the OpenGL
+  sharpen/upscale engine and shows a short notice in the UI.
+- Because the model has a fixed 50×50 input, each frame is processed as many tiles; per-frame ML
+  inference is **much** slower than the GL engine and is best suited to short clips.
+- `.tflite` files are kept uncompressed in the APK (see `noCompress` in `app/build.gradle.kts`) so the
+  interpreter can memory-map them.

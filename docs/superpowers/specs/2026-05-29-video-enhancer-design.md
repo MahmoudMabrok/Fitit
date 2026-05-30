@@ -26,10 +26,10 @@ Three things, controlled by the chosen `EnhancementLevel` (Light / Standard / Ma
    re-encoded at a bitrate derived from output pixels × fps × a bits-per-pixel factor.
 
 The default GL pipeline is dependency-free and runs on any GLES 2.0 device. An optional
-**AI super-resolution** engine (TensorFlow Lite) is also available: when a model binary is
-bundled at `assets/models/super_resolution.tflite` it upscales each frame through the model;
-otherwise the enhancer transparently falls back to this shader pipeline. See
-`assets/models/README.md`.
+**AI super-resolution** engine (TensorFlow Lite) is also available: a 4× ESRGAN-TF2 model is
+bundled at `assets/models/super_resolution.tflite` and upscales each frame through the model
+(API 28+). On older devices, or if the model file is removed, the enhancer transparently falls
+back to this shader pipeline. See `assets/models/README.md` for the model's source/license/IO.
 
 ### Aspect-ratio handling
 
