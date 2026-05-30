@@ -48,7 +48,7 @@ fun EmptyTextScreen(
                         text = stringResource(R.string.tricky_content_title),
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
-                    ) 
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -74,7 +74,7 @@ fun EmptyTextScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Preview Box (Outlined Card)
+            // Preview Box (Outlined Card) — shows the generated tricky content.
             OutlinedCard(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -88,26 +88,19 @@ fun EmptyTextScreen(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // This space contains the invisible generated text
                     Text(
                         text = viewModel.generateText(),
+                        textAlign = TextAlign.Start,
                         modifier = Modifier
-                            .padding(horizontal = 24.dp)
                             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), RoundedCornerShape(4.dp))
                             .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
                             .padding(8.dp)
                     )
-                    
+
                     Spacer(Modifier.height(16.dp))
 
-                    val caption = when (viewModel.selectedMode) {
-                        TrickyContentType.INVISIBLE ->
-                            "${viewModel.charCount.toInt()} ${stringResource(R.string.tricky_chars_unit)} · ${stringResource(R.string.tricky_mode_invisible)}"
-                        TrickyContentType.VOICE_MESSAGE ->
-                            "${stringResource(R.string.tricky_mode_voice)} · ${viewModel.formattedDuration()}"
-                    }
                     Text(
-                        text = caption,
+                        text = modeLabel(viewModel.selectedMode),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp,
                         textAlign = TextAlign.Center
@@ -132,16 +125,12 @@ fun EmptyTextScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                val modeLabels = mapOf(
-                    TrickyContentType.INVISIBLE to stringResource(R.string.tricky_mode_invisible),
-                    TrickyContentType.VOICE_MESSAGE to stringResource(R.string.tricky_mode_voice)
-                )
                 TrickyContentType.values().forEach { mode ->
                     val isSelected = viewModel.selectedMode == mode
                     FilterChip(
                         selected = isSelected,
-                        onClick = { viewModel.selectedMode = mode },
-                        label = { Text(modeLabels.getValue(mode)) },
+                        onClick = { viewModel.onModeSelected(mode) },
+                        label = { Text(modeLabel(mode)) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primary,
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
@@ -151,66 +140,91 @@ fun EmptyTextScreen(
                 }
             }
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(24.dp))
 
-            // Slider — length (invisible) or duration (voice message)
-            val isInvisible = viewModel.selectedMode == TrickyContentType.INVISIBLE
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = if (isInvisible) stringResource(R.string.length)
-                    else stringResource(R.string.tricky_duration),
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            // Per-mode control: a text field, a slider, and/or a voice/video toggle.
+            val mode = viewModel.selectedMode
+
+            if (mode.usesText) {
+                OutlinedTextField(
+                    value = viewModel.textInput,
+                    onValueChange = { viewModel.textInput = it },
+                    label = { Text(textFieldLabel(mode)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
                 )
-                Text(
-                    text = if (isInvisible) "${viewModel.charCount.toInt()}"
-                    else viewModel.formattedDuration(),
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 16.sp
-                )
+                Spacer(Modifier.height(8.dp))
             }
 
-            if (isInvisible) {
+            if (mode.usesVideoToggle) {
+                val labels = toggleLabels(mode)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = !viewModel.toggleVideo,
+                        onClick = { viewModel.toggleVideo = false },
+                        label = { Text(labels.first) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+                    FilterChip(
+                        selected = viewModel.toggleVideo,
+                        onClick = { viewModel.toggleVideo = true },
+                        label = { Text(labels.second) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+                }
+            }
+
+            if (mode.usesSlider) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = sliderTitle(mode.sliderKind),
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = viewModel.sliderDisplay(),
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 16.sp
+                    )
+                }
                 Slider(
-                    value = viewModel.charCount,
-                    onValueChange = { viewModel.charCount = it },
-                    valueRange = 1f..200f,
+                    value = viewModel.sliderValue,
+                    onValueChange = { viewModel.sliderValue = it },
+                    valueRange = mode.sliderRange,
                     colors = SliderDefaults.colors(
                         thumbColor = MaterialTheme.colorScheme.primary,
                         activeTrackColor = MaterialTheme.colorScheme.primary,
                         inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.24f)
                     )
                 )
-            } else {
-                Slider(
-                    value = viewModel.durationSeconds,
-                    onValueChange = { viewModel.durationSeconds = it },
-                    valueRange = 1f..300f,
-                    colors = SliderDefaults.colors(
-                        thumbColor = MaterialTheme.colorScheme.primary,
-                        activeTrackColor = MaterialTheme.colorScheme.primary,
-                        inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.24f)
-                    )
-                )
             }
 
-            Spacer(Modifier.weight(1f))
             Spacer(Modifier.height(32.dp))
 
             // Copy Button
             Button(
                 onClick = {
                     viewModel.copyToClipboard(context)
-                    val length = if (viewModel.selectedMode == TrickyContentType.INVISIBLE)
-                        viewModel.charCount.toInt() else viewModel.durationSeconds.toInt()
+                    val length = if (viewModel.selectedMode.usesSlider)
+                        viewModel.sliderValue.toInt() else 0
                     AnalyticsManager.trackEmptyTextCopied(viewModel.selectedMode.name, length)
-                    // Showing a Toast as requested, but also have Snackbar host if needed
                     Toast.makeText(context, context.getString(R.string.copied_toast), Toast.LENGTH_SHORT).show()
                 },
                 modifier = Modifier
@@ -226,3 +240,54 @@ fun EmptyTextScreen(
         }
     }
 }
+
+/** Localized chip/caption label for each mode. */
+@Composable
+private fun modeLabel(mode: TrickyContentType): String = stringResource(
+    when (mode) {
+        TrickyContentType.INVISIBLE -> R.string.tricky_mode_invisible
+        TrickyContentType.VOICE_MESSAGE -> R.string.tricky_mode_voice
+        TrickyContentType.TYPING -> R.string.tricky_mode_typing
+        TrickyContentType.RECORDING -> R.string.tricky_mode_recording
+        TrickyContentType.MISSED_CALL -> R.string.tricky_mode_missed_call
+        TrickyContentType.PHOTO -> R.string.tricky_mode_photo
+        TrickyContentType.VIEW_ONCE -> R.string.tricky_mode_view_once
+        TrickyContentType.DOCUMENT -> R.string.tricky_mode_document
+        TrickyContentType.LOCATION -> R.string.tricky_mode_location
+        TrickyContentType.CONTACT -> R.string.tricky_mode_contact
+        TrickyContentType.DOWNLOAD -> R.string.tricky_mode_download
+        TrickyContentType.SPINNER -> R.string.tricky_mode_spinner
+        TrickyContentType.POLL -> R.string.tricky_mode_poll
+        TrickyContentType.QUOTE -> R.string.tricky_mode_quote
+    }
+)
+
+/** Localized label for the text input of a text-based mode. */
+@Composable
+private fun textFieldLabel(mode: TrickyContentType): String = stringResource(
+    when (mode) {
+        TrickyContentType.DOCUMENT -> R.string.tricky_input_file
+        TrickyContentType.POLL -> R.string.tricky_input_poll
+        TrickyContentType.QUOTE -> R.string.tricky_input_quote
+        else -> R.string.tricky_input_name
+    }
+)
+
+/** Localized slider title for each numeric kind. */
+@Composable
+private fun sliderTitle(kind: SliderKind): String = stringResource(
+    when (kind) {
+        SliderKind.COUNT -> R.string.length
+        SliderKind.PERCENT -> R.string.tricky_progress
+        else -> R.string.tricky_duration
+    }
+)
+
+/** The two voice/video (or photo/video) toggle labels for a mode. */
+@Composable
+private fun toggleLabels(mode: TrickyContentType): Pair<String, String> =
+    if (mode == TrickyContentType.VIEW_ONCE) {
+        stringResource(R.string.tricky_media_photo) to stringResource(R.string.tricky_media_video)
+    } else {
+        stringResource(R.string.tricky_call_voice) to stringResource(R.string.tricky_call_video)
+    }
