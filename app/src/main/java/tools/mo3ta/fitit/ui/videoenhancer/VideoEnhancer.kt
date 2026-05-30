@@ -8,6 +8,7 @@ import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.media.MediaMuxer
 import android.net.Uri
+import android.os.Build
 import java.io.File
 import java.nio.ByteBuffer
 
@@ -30,17 +31,28 @@ object VideoEnhancer {
     /**
      * Enhances the video at [uri] into [output].
      *
+     * @param engine which processing engine to use; [EnhanceEngine.ML] transparently falls back to
+     *   [EnhanceEngine.GL] when no TensorFlow Lite model is bundled.
      * @param onProgress invoked with a 0f..1f completion fraction.
+     * @return the engine that actually ran, so callers can surface an ML→GL fallback to the user.
      */
     fun enhance(
         context: Context,
         uri: Uri,
         output: File,
         level: EnhancementLevel,
+        engine: EnhanceEngine = EnhanceEngine.GL,
         onProgress: (Float) -> Unit = {},
-    ) {
+    ): EnhanceEngine {
+        if (engine == EnhanceEngine.ML &&
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
+            MlVideoEnhancer.isAvailable(context)
+        ) {
+            MlVideoEnhancer.enhance(context, uri, output, level, onProgress)
+            return EnhanceEngine.ML
+        }
+
         val (srcWidth, srcHeight, rotation, durationUs, frameRate) = readVideoInfo(context, uri)
-        val spec = computeOutputSpec(srcWidth, srcHeight, frameRate, level)
 
         val extractor = MediaExtractor()
         var decoder: MediaCodec? = null
@@ -55,6 +67,16 @@ object VideoEnhancer {
             check(videoTrack >= 0) { "No video track found" }
             extractor.selectTrack(videoTrack)
             val inputFormat = extractor.getTrackFormat(videoTrack)
+
+            // The decoder emits frames at the *coded* dimensions carried by the track format. For
+            // rotated clips (most phone-shot portrait video) these differ from the display-oriented
+            // dimensions reported by MediaMetadataRetriever, because rotation is stored separately.
+            // Driving the encoder + renderer from the coded dimensions — and reproducing the
+            // orientation purely through the muxer's orientation hint — keeps the output aspect ratio
+            // identical to the source instead of squashing the frame into a swapped resolution.
+            val codedWidth = inputFormat.intOrDefault(MediaFormat.KEY_WIDTH, srcWidth)
+            val codedHeight = inputFormat.intOrDefault(MediaFormat.KEY_HEIGHT, srcHeight)
+            val spec = computeOutputSpec(codedWidth, codedHeight, frameRate, level)
 
             // Encoder first, so we can hand its input surface to the EGL setup.
             val outFormat = MediaFormat.createVideoFormat(VIDEO_MIME, spec.width, spec.height).apply {
@@ -75,8 +97,8 @@ object VideoEnhancer {
                 sharpen = level.sharpen,
                 saturation = level.saturation,
                 contrast = level.contrast,
-                sourceWidth = srcWidth,
-                sourceHeight = srcHeight,
+                sourceWidth = codedWidth,
+                sourceHeight = codedHeight,
                 outputWidth = spec.width,
                 outputHeight = spec.height,
             )
@@ -115,6 +137,7 @@ object VideoEnhancer {
             runCatching { extractor.release() }
         }
         onProgress(1f)
+        return EnhanceEngine.GL
     }
 
     private fun transcodeVideo(
@@ -211,6 +234,10 @@ object VideoEnhancer {
 
         audioCopier?.copyTo(muxer)
     }
+
+    /** Reads an integer key from a [MediaFormat], returning [default] when the key is absent. */
+    private fun MediaFormat.intOrDefault(key: String, default: Int): Int =
+        if (containsKey(key)) getInteger(key) else default
 
     private fun selectTrack(extractor: MediaExtractor, prefix: String): Int {
         for (i in 0 until extractor.trackCount) {

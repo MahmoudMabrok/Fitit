@@ -128,6 +128,10 @@
     <string name="video_enhancer_level_light">Light</string>
     <string name="video_enhancer_level_standard">Standard</string>
     <string name="video_enhancer_level_max">Max</string>
+    <string name="video_enhancer_ai_label">AI super-resolution</string>
+    <string name="video_enhancer_ai_desc">Use an on-device TensorFlow Lite model to reconstruct detail. Experimental and slower.</string>
+    <string name="video_enhancer_ai_unavailable">No AI model bundled — uses the standard engine.</string>
+    <string name="video_enhancer_ai_fallback">AI model unavailable; enhanced with the standard engine.</string>
     <string name="video_enhancer_enhance_button">Enhance Video</string>
     <string name="video_enhancer_processing">Processing… %d%%</string>
     <string name="video_enhancer_result_title">Enhanced video ready</string>

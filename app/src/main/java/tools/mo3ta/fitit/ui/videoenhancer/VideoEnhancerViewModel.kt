@@ -32,6 +32,10 @@ class VideoEnhancerViewModel(application: Application) : AndroidViewModel(applic
         private set
     var level by mutableStateOf(EnhancementLevel.STANDARD)
         private set
+    var useAiUpscale by mutableStateOf(false)
+        private set
+    var aiFellBackToGl by mutableStateOf(false)
+        private set
     var isProcessing by mutableStateOf(false)
         private set
     var progress by mutableStateOf(0f)
@@ -51,9 +55,19 @@ class VideoEnhancerViewModel(application: Application) : AndroidViewModel(applic
     val isEnhanceEnabled: Boolean
         get() = selectedVideoUri != null && isDurationValid && !isProcessing
 
+    /** Whether a bundled TensorFlow Lite model makes the AI engine usable on this device. */
+    val isAiEngineAvailable: Boolean
+        get() = MlVideoEnhancer.isAvailable(getApplication<Application>())
+
     fun changeLevel(newLevel: EnhancementLevel) {
         if (isProcessing) return
         level = newLevel
+        resetResult()
+    }
+
+    fun setUseAiUpscale(enabled: Boolean) {
+        if (isProcessing) return
+        useAiUpscale = enabled
         resetResult()
     }
 
@@ -73,10 +87,13 @@ class VideoEnhancerViewModel(application: Application) : AndroidViewModel(applic
         val uri = selectedVideoUri ?: return
         val context = getApplication<Application>()
 
+        val requestedEngine = if (useAiUpscale) EnhanceEngine.ML else EnhanceEngine.GL
+
         viewModelScope.launch {
             isProcessing = true
             progress = 0f
             errorMessage = null
+            aiFellBackToGl = false
             resetResult()
 
             try { AnalyticsManager.trackVideoEnhanceStarted(videoDurationMs, level.name) } catch (_: Exception) {}
@@ -84,11 +101,12 @@ class VideoEnhancerViewModel(application: Application) : AndroidViewModel(applic
             try {
                 val outputDir = File(context.cacheDir, "enhanced_videos").also { it.mkdirs() }
                 val outputFile = File(outputDir, "enhanced_${System.currentTimeMillis()}.mp4")
-                withContext(Dispatchers.IO) {
-                    VideoEnhancer.enhance(context, uri, outputFile, level) { p ->
+                val usedEngine = withContext(Dispatchers.IO) {
+                    VideoEnhancer.enhance(context, uri, outputFile, level, requestedEngine) { p ->
                         viewModelScope.launch(Dispatchers.Main) { progress = p }
                     }
                 }
+                aiFellBackToGl = requestedEngine == EnhanceEngine.ML && usedEngine == EnhanceEngine.GL
                 enhancedFile = outputFile
                 enhancedFileSizeBytes = outputFile.length()
                 try { AnalyticsManager.trackVideoEnhanceCompleted(level.name) } catch (_: Exception) {}

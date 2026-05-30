@@ -128,6 +128,10 @@
     <string name="video_enhancer_level_light">خفيف</string>
     <string name="video_enhancer_level_standard">قياسي</string>
     <string name="video_enhancer_level_max">أقصى</string>
+    <string name="video_enhancer_ai_label">تحسين بالذكاء الاصطناعي</string>
+    <string name="video_enhancer_ai_desc">استخدم نموذج TensorFlow Lite على جهازك لإعادة بناء التفاصيل. تجريبي وأبطأ.</string>
+    <string name="video_enhancer_ai_unavailable">لا يوجد نموذج ذكاء اصطناعي مضمّن — يُستخدم المحرّك القياسي.</string>
+    <string name="video_enhancer_ai_fallback">نموذج الذكاء الاصطناعي غير متوفر؛ تم التحسين بالمحرّك القياسي.</string>
     <string name="video_enhancer_enhance_button">تحسين الفيديو</string>
     <string name="video_enhancer_processing">جارٍ المعالجة… %d%%</string>
     <string name="video_enhancer_result_title">الفيديو المحسّن جاهز</string>
