@@ -10,12 +10,17 @@ on:
         options:
           - apk
           - aab
-        default: apk
+        default: aab
       upload_to_play:
         description: 'Upload to Google Play Console'
         required: false
         type: boolean
-        default: false
+        default: true
+      version_name:
+        description: 'Version name (e.g. 2.5.0). Leave empty to use build.gradle.kts value'
+        required: false
+        type: string
+        default: ''
       track:
         description: 'Google Play Track'
         required: true
@@ -74,6 +79,13 @@ jobs:
             -v 2>&1 | grep -E "Alias name|Entry type|ERROR|error" \
             || { echo "ERROR: keytool could not read the keystore. Check passwords and alias."; exit 1; }
           echo "--- Keystore validation passed ---"
+
+      - name: Update version name
+        if: ${{ github.event.inputs.version_name != '' }}
+        run: |
+          sed -i "s/versionName = \".*\"/versionName = \"${{ github.event.inputs.version_name }}\"/" app/build.gradle.kts
+          echo "Updated versionName to ${{ github.event.inputs.version_name }}"
+          grep versionName app/build.gradle.kts
 
       - name: Build APK with Gradle
         if: ${{ github.event.inputs.build_type == 'apk' }}
