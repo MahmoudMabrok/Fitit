@@ -143,7 +143,7 @@ fun VideoEnhancerScreen(
                         if (viewModel.isAiEngineAvailable) R.string.video_enhancer_ai_desc
                         else R.string.video_enhancer_ai_unavailable,
                     ),
-                    onCheckedChange = viewModel::setUseAiUpscale,
+                    onCheckedChange = viewModel::changeAiUpscale,
                 )
             }
 

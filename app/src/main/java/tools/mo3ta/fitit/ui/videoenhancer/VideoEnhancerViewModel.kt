@@ -65,7 +65,7 @@ class VideoEnhancerViewModel(application: Application) : AndroidViewModel(applic
         resetResult()
     }
 
-    fun setUseAiUpscale(enabled: Boolean) {
+    fun changeAiUpscale(enabled: Boolean) {
         if (isProcessing) return
         useAiUpscale = enabled
         resetResult()
