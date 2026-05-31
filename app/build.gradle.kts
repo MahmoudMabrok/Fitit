@@ -34,7 +34,7 @@ android {
 
     androidResources {
         localeFilters += listOf("en", "ar")
-        // TensorFlow Lite models must stay uncompressed so the Interpreter can memory-map them.
+        // .tflite models must stay uncompressed so the LiteRT Interpreter can memory-map them.
         noCompress += "tflite"
     }
 
@@ -93,11 +93,11 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.coil.compose)
-    implementation(libs.tensorflow.lite)
-    implementation(libs.tensorflow.lite.gpu)
-    // gpu-api holds GpuDelegateFactory (the GpuDelegate ctor's parameter type); it is not pulled
-    // transitively by tensorflow-lite-gpu, so the GPU delegate code won't compile without it.
-    implementation(libs.tensorflow.lite.gpu.api)
+    implementation(libs.litert)
+    implementation(libs.litert.gpu)
+    // litert-gpu-api holds GpuDelegateFactory (the GpuDelegate ctor's parameter type); it is not
+    // pulled transitively by litert-gpu, so the GPU delegate code won't compile without it.
+    implementation(libs.litert.gpu.api)
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation("com.google.firebase:firebase-analytics:22.2.0")
     implementation(libs.firebase.crashlytics)
