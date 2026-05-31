@@ -197,7 +197,7 @@ class VideoSplitterViewModel(application: Application) : AndroidViewModel(applic
     } catch (_: Exception) { 0L }
 }
 
-private fun extractSegment(
+internal fun extractSegment(
     context: Context,
     uri: Uri,
     startMs: Long,

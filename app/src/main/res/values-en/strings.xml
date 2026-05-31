@@ -158,7 +158,7 @@
     <string name="video_enhancer_speed_balanced">Balanced</string>
     <string name="video_enhancer_speed_quality">Quality</string>
     <string name="video_enhancer_enhance_button">Enhance Video</string>
-    <string name="video_enhancer_processing">Processing… %d%%</string>
+    <string name="video_enhancer_processing">Processing… %.3f%%</string>
     <string name="video_enhancer_result_title">Enhanced video ready</string>
     <string name="video_enhancer_original">Original</string>
     <string name="video_enhancer_enhanced">Enhanced</string>

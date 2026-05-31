@@ -181,7 +181,7 @@ fun VideoEnhancerScreen(
                         Text(
                             text = stringResource(
                                 R.string.video_enhancer_processing,
-                                (viewModel.progress * 100).toInt(),
+                                viewModel.progress * 100,
                             ),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,

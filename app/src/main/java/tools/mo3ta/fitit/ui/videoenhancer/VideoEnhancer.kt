@@ -50,7 +50,9 @@ object VideoEnhancer {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
             MlVideoEnhancer.isAvailable(context)
         ) {
-            MlVideoEnhancer.enhance(context, uri, output, level, speedMode, onProgress)
+            // Slice → super-resolve each slice → stitch back together, reusing the app's split
+            // (VideoSplitter.extractSegment) and merge (MediaMerger.mergeMedia) logic.
+            MlChunkedVideoEnhancer.enhance(context, uri, output, level, speedMode, onProgress = onProgress)
             return EnhanceEngine.ML
         }
 
@@ -194,7 +196,8 @@ object VideoEnhancer {
                         inputSurface.swapBuffers()
                         if (durationUs > 0) {
                             val p = (bufferInfo.presentationTimeUs.toFloat() / durationUs).coerceIn(0f, 0.99f)
-                            if (p - lastProgress >= 0.01f) {
+                            // Fine step (0.1%) so the displayed fractional percentage keeps moving.
+                            if (p - lastProgress >= 0.001f) {
                                 lastProgress = p
                                 onProgress(p)
                             }
