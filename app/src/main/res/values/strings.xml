@@ -36,6 +36,17 @@
     <string name="share_app_message">جرّب تطبيق ذكي، مجموعة أدوات صانع المحتوى: %1$s</string>
     <string name="share_app_chooser_title">مشاركة عبر</string>
 
+    <!-- Storage -->
+    <string name="storage">التخزين</string>
+    <string name="clear_cache">مسح الملفات المؤقتة</string>
+    <string name="clear_cache_hint">حذف الملفات التي أنشأها التطبيق (الحجم الحالي: %1$s)</string>
+    <string name="clear_cache_dialog_title">مسح الملفات المؤقتة؟</string>
+    <string name="clear_cache_dialog_message">سيتم حذف الملفات المؤقتة التي أنشأها التطبيق. لن يؤثر ذلك على الملفات التي حفظتها في جهازك.</string>
+    <string name="clear_cache_confirm">مسح</string>
+    <string name="clear_cache_cancel">إلغاء</string>
+    <string name="clear_cache_done">تم مسح الملفات المؤقتة</string>
+    <string name="clear_cache_empty">لا توجد ملفات مؤقتة لمسحها</string>
+
     <!-- Onboarding Screen -->
     <string name="onboarding_title">مرحباً بك في ذكي</string>
     <string name="onboarding_desc">رفيقك لمعالجة النصوص وأكثر.</string>
