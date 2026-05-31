@@ -36,6 +36,11 @@ on:
         required: false
         type: boolean
         default: true
+      managed_publishing:
+        description: 'Play Console Managed Publishing is ON. Keep checked to match that setting (sends changesNotSentForReview=true). Uncheck only if Managed Publishing is OFF.'
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   build:
@@ -192,13 +197,16 @@ jobs:
           track: ${{ github.event.inputs.track }}
           # completed = submitted for review; draft = uploaded but held in the
           # Play Console (use when a manual permission declaration / review is
-          # required before the changes can be sent for review).
+          # required before the changes can be sent for review). A draft does NOT
+          # send the changes for review, so the edit commits even while an
+          # App-content declaration (e.g. the foreground service permissions) is
+          # still pending — land the build, complete the declaration, then submit.
           status: ${{ github.event.inputs.submit_for_review == 'true' && 'completed' || 'draft' }}
-          # When drafting, tell the API the changes are NOT being sent for review.
-          # This lets the edit commit even while an App-content declaration (e.g. the
-          # foreground service permissions) is still pending; without it the commit
-          # can be rejected and no draft is saved.
-          changesNotSentForReview: ${{ github.event.inputs.submit_for_review == 'true' && 'false' || 'true' }}
+          # changesNotSentForReview is coupled to the Play Console "Managed Publishing"
+          # setting: it MUST be true when Managed Publishing is ON (Play can't auto-send
+          # for review), and MUST be false/absent when it is OFF (else the API rejects it
+          # with "changesNotSentForReview must not be set"). Drive it from the input.
+          changesNotSentForReview: ${{ github.event.inputs.managed_publishing == 'true' && 'true' || 'false' }}
           mappingFile: app/build/outputs/mapping/release/mapping.txt
 
       # Step 2: only once the publish to Google Play has succeeded do we commit
