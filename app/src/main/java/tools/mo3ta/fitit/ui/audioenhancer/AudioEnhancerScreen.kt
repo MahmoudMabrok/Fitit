@@ -125,6 +125,20 @@ fun AudioEnhancerScreen(
             }
 
             item {
+                AiDenoiseToggle(
+                    checked = viewModel.useAiDenoise,
+                    available = viewModel.isAiEngineAvailable,
+                    enabled = !viewModel.isProcessing,
+                    title = stringResource(R.string.audio_enhancer_ai_label),
+                    description = stringResource(
+                        if (viewModel.isAiEngineAvailable) R.string.audio_enhancer_ai_desc
+                        else R.string.audio_enhancer_ai_unavailable,
+                    ),
+                    onCheckedChange = viewModel::changeAiDenoise,
+                )
+            }
+
+            item {
                 EnhanceButton(
                     onClick = { viewModel.enhance() },
                     enabled = viewModel.isEnhanceEnabled,
@@ -150,6 +164,16 @@ fun AudioEnhancerScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                }
+            }
+
+            if (viewModel.aiFellBack) {
+                item {
+                    Text(
+                        text = stringResource(R.string.audio_enhancer_ai_fallback),
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
 
@@ -442,6 +466,53 @@ private fun ResultCard(
                     Text(shareLabel, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun AiDenoiseToggle(
+    checked: Boolean,
+    available: Boolean,
+    enabled: Boolean,
+    title: String,
+    description: String,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = description,
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Switch(
+                checked = checked && available,
+                onCheckedChange = onCheckedChange,
+                enabled = enabled && available,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = Accent,
+                ),
+            )
         }
     }
 }

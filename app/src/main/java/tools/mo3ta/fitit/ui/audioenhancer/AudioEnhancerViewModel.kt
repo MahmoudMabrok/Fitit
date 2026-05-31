@@ -33,6 +33,10 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
         private set
     var level by mutableStateOf(AudioEnhancementLevel.STANDARD)
         private set
+    var useAiDenoise by mutableStateOf(false)
+        private set
+    var aiFellBack by mutableStateOf(false)
+        private set
     var isProcessing by mutableStateOf(false)
         private set
     var progress by mutableStateOf(0f)
@@ -48,6 +52,16 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
 
     val isEnhanceEnabled: Boolean
         get() = selectedAudioUri != null && !isProcessing
+
+    /** Whether the bundled DTLN models make the AI denoise engine usable here. */
+    val isAiEngineAvailable: Boolean
+        get() = MlAudioDenoiser.isAvailable(getApplication<Application>())
+
+    fun changeAiDenoise(enabled: Boolean) {
+        if (isProcessing) return
+        useAiDenoise = enabled
+        resetResult()
+    }
 
     fun onAudioSelected(uri: Uri) {
         selectedAudioUri = uri
@@ -77,24 +91,27 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
         val uri = selectedAudioUri ?: return
         val context = getApplication<Application>()
         val selectedLevel = level
+        val ai = useAiDenoise
 
         viewModelScope.launch {
             isProcessing = true
             progress = 0f
             errorMessage = null
+            aiFellBack = false
             resetResult()
 
-            try { AnalyticsManager.trackAudioEnhanceStarted(selectedLevel.name) } catch (_: Exception) {}
+            try { AnalyticsManager.trackAudioEnhanceStarted(selectedLevel.name, ai) } catch (_: Exception) {}
 
             try {
-                val output = withContext(Dispatchers.IO) {
+                val result = withContext(Dispatchers.IO) {
                     // mutableStateOf writes are snapshot-thread-safe, so the progress
                     // callback can update directly from this IO thread.
-                    AudioEnhancer.enhance(context, uri, selectedLevel) { p -> progress = p }
+                    AudioEnhancer.enhance(context, uri, selectedLevel, useAi = ai) { p -> progress = p }
                 }
-                resultFile = output
-                resultSizeBytes = output.length()
-                try { AnalyticsManager.trackAudioEnhanceCompleted(selectedLevel.name) } catch (_: Exception) {}
+                resultFile = result.file
+                resultSizeBytes = result.file.length()
+                aiFellBack = result.aiFellBack
+                try { AnalyticsManager.trackAudioEnhanceCompleted(selectedLevel.name, ai && !result.aiFellBack) } catch (_: Exception) {}
             } catch (e: Exception) {
                 errorMessage = mapError(e)
             } finally {
@@ -165,6 +182,7 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
         resultSizeBytes = 0L
         isSaved = false
         progress = 0f
+        aiFellBack = false
     }
 
     private fun mapError(e: Exception): String {

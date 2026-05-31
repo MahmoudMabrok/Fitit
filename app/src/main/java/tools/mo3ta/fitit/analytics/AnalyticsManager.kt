@@ -78,11 +78,11 @@ object AnalyticsManager {
 
     fun trackAudioShared(format: String) = log("zaki_audio_shared", "format" to format)
 
-    fun trackAudioEnhanceStarted(level: String) =
-        log("zaki_audio_enhance_started", "level" to level)
+    fun trackAudioEnhanceStarted(level: String, ai: Boolean = false) =
+        log("zaki_audio_enhance_started", "level" to level, "ai" to ai.toString())
 
-    fun trackAudioEnhanceCompleted(level: String) =
-        log("zaki_audio_enhance_completed", "level" to level)
+    fun trackAudioEnhanceCompleted(level: String, ai: Boolean = false) =
+        log("zaki_audio_enhance_completed", "level" to level, "ai" to ai.toString())
 
     fun trackAudioEnhanceSaved() = log("zaki_audio_enhance_saved")
 
