@@ -2,11 +2,13 @@ package tools.mo3ta.fitit.ui.audioenhancer
 
 import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
 import kotlin.math.sqrt
+import kotlin.math.tanh
 
 /**
  * Pure-Kotlin DSP used by the Audio Enhancer. Everything here operates on plain
@@ -253,6 +255,32 @@ object AudioDsp {
         return applyBiquad(signal, b0, b1, b2, a0, a1, a2)
     }
 
+    /**
+     * Peaking EQ that boosts (or cuts) a band of [gainDb] dB centred on [centerHz].
+     * Used to add a gentle "presence" lift for speech clarity. [q] sets the
+     * bandwidth (lower = wider). Uses the RBJ cookbook formulas.
+     */
+    fun peaking(
+        signal: FloatArray,
+        sampleRate: Int,
+        centerHz: Float,
+        gainDb: Float,
+        q: Float = 0.707f,
+    ): FloatArray {
+        if (centerHz <= 0f || centerHz >= sampleRate / 2f || gainDb == 0f) return signal
+        val a = pow10(gainDb / 40f).toDouble()
+        val w0 = 2.0 * PI * centerHz / sampleRate
+        val cosw = cos(w0)
+        val alpha = sin(w0) / (2.0 * q)
+        val b0 = 1.0 + alpha * a
+        val b1 = -2.0 * cosw
+        val b2 = 1.0 - alpha * a
+        val a0 = 1.0 + alpha / a
+        val a1 = -2.0 * cosw
+        val a2 = 1.0 - alpha / a
+        return applyBiquad(signal, b0, b1, b2, a0, a1, a2)
+    }
+
     private fun applyBiquad(
         x: FloatArray,
         b0: Double, b1: Double, b2: Double,
@@ -304,6 +332,83 @@ object AudioDsp {
         if (p < EPS) return 1f
         val gain = pow10(targetDb / 20f) / p
         for (ch in channels) for (i in ch.indices) ch[i] *= gain
+        return gain
+    }
+
+    /**
+     * Single-band feed-forward compressor. A linear-domain envelope follower with
+     * [attackMs] / [releaseMs] ballistics applies soft gain reduction once the
+     * level rises above [thresholdDb] (dBFS) at the given [ratio], followed by
+     * [makeupDb] make-up gain. Lowers the crest factor so quiet passages come
+     * forward. Returns a new buffer; [signal] is left untouched.
+     */
+    fun compress(
+        signal: FloatArray,
+        sampleRate: Int,
+        thresholdDb: Float,
+        ratio: Float,
+        attackMs: Float = 10f,
+        releaseMs: Float = 100f,
+        makeupDb: Float = 0f,
+    ): FloatArray {
+        if (ratio <= 1f || signal.isEmpty() || sampleRate <= 0) return signal
+        val attackCoef = exp(-1.0 / (sampleRate * attackMs / 1000.0))
+        val releaseCoef = exp(-1.0 / (sampleRate * releaseMs / 1000.0))
+        val threshold = pow10(thresholdDb / 20f).toDouble()
+        val makeup = pow10(makeupDb / 20f).toDouble()
+        val invRatio = 1.0 / ratio
+        val out = FloatArray(signal.size)
+        var env = 0.0
+        for (i in signal.indices) {
+            val x = signal[i].toDouble()
+            val a = if (x < 0) -x else x
+            env = if (a > env) attackCoef * env + (1.0 - attackCoef) * a
+            else releaseCoef * env + (1.0 - releaseCoef) * a
+            val gain = if (env <= threshold || env < 1e-9) 1.0
+            else (threshold * Math.pow(env / threshold, invRatio)) / env
+            out[i] = (x * gain * makeup).toFloat()
+        }
+        return out
+    }
+
+    /**
+     * Loudness-normalize [channels] in place towards an RMS target of [targetRmsDb]
+     * (an EBU-R128-style loudness target), then engage a smooth true-peak soft
+     * limiter so no sample exceeds [ceilingDb]. Unlike [peakNormalize] this raises
+     * the perceived volume of quiet recordings; the `tanh` limiter only kicks in
+     * when the gained signal would otherwise clip, so clean material keeps its
+     * exact target level. Returns the loudness gain applied.
+     */
+    fun loudnessNormalize(
+        channels: Array<FloatArray>,
+        targetRmsDb: Float = -16f,
+        ceilingDb: Float = -1f,
+    ): Float {
+        var sumSq = 0.0
+        var count = 0L
+        for (ch in channels) for (v in ch) {
+            sumSq += v.toDouble() * v
+            count++
+        }
+        if (count == 0L) return 1f
+        val rms = sqrt(sumSq / count).toFloat()
+        if (rms < EPS) return 1f
+        val gain = pow10(targetRmsDb / 20f) / rms
+        val ceiling = pow10(ceilingDb / 20f)
+        // Apply the linear loudness gain and track the resulting true peak.
+        var peak = 0f
+        for (ch in channels) for (i in ch.indices) {
+            val g = ch[i] * gain
+            ch[i] = g
+            val abs = if (g < 0) -g else g
+            if (abs > peak) peak = abs
+        }
+        // Only saturate if the gained signal would exceed the ceiling.
+        if (peak > ceiling) {
+            for (ch in channels) for (i in ch.indices) {
+                ch[i] = (ceiling * tanh(ch[i] / ceiling)).toFloat()
+            }
+        }
         return gain
     }
 
