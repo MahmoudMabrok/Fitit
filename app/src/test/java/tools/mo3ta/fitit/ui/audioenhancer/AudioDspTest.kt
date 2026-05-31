@@ -57,13 +57,25 @@ class AudioDspTest {
 
     @Test
     fun `noise reduction lowers the noise floor of a noisy tone`() {
-        val clean = tone(440.0, sampleRate)
         val rng = java.util.Random(1)
-        val noisy = FloatArray(clean.size) { clean[it] + (0.08 * rng.nextGaussian()).toFloat() }
+        val n = sampleRate
+        // First half is signal-free (pure noise), second half carries a tone.
+        // This mirrors real recordings, which have quiet stretches the spectral
+        // gate can profile, and lets us measure the noise floor where there is
+        // no signal to confound the comparison. The tone frequency is bin-aligned
+        // (500 Hz at 16 kHz / 1024-FFT = bin 32) to avoid spectral-leakage noise.
+        val noise = FloatArray(n) { (0.08 * rng.nextGaussian()).toFloat() }
+        val noisy = FloatArray(n) {
+            val toneSample = if (it >= n / 2) {
+                (0.5 * sin(2 * PI * 500.0 * it / sampleRate)).toFloat()
+            } else 0f
+            noise[it] + toneSample
+        }
         val out = AudioDsp.reduceNoise(noisy, strength = 1.5f)
 
-        val before = rms(FloatArray(clean.size) { noisy[it] - clean[it] })
-        val after = rms(FloatArray(clean.size) { out[it] - clean[it] })
+        // Compare the noise floor in the signal-free first half.
+        val before = rms(noisy.copyOfRange(0, n / 2))
+        val after = rms(out.copyOfRange(0, n / 2))
         assertTrue("expected noise reduction, before=$before after=$after", after < before)
     }
 
