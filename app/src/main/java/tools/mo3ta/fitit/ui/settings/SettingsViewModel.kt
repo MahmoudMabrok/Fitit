@@ -13,13 +13,18 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import tools.mo3ta.fitit.R
 import tools.mo3ta.fitit.data.SettingsRepository
 import tools.mo3ta.fitit.data.ThemeMode
+import java.io.File
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -31,6 +36,56 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             started = SharingStarted.Eagerly,
             initialValue = ThemeMode.SYSTEM
         )
+
+    private val _cacheSizeBytes = MutableStateFlow(0L)
+
+    /** Total size, in bytes, of the files the app has generated in its cache. */
+    val cacheSizeBytes: StateFlow<Long> = _cacheSizeBytes.asStateFlow()
+
+    private val _isClearingCache = MutableStateFlow(false)
+    val isClearingCache: StateFlow<Boolean> = _isClearingCache.asStateFlow()
+
+    init {
+        refreshCacheSize()
+    }
+
+    /** Recomputes the current cache size off the main thread. */
+    fun refreshCacheSize() {
+        viewModelScope.launch {
+            val size = withContext(Dispatchers.IO) {
+                getApplication<Application>().cacheDir?.directorySize() ?: 0L
+            }
+            _cacheSizeBytes.value = size
+        }
+    }
+
+    /**
+     * Deletes the files the app cached (generated tool outputs and temporary files)
+     * and refreshes the reported cache size. Invokes [onComplete] with the number of
+     * bytes that were freed.
+     */
+    fun clearCache(onComplete: (freedBytes: Long) -> Unit = {}) {
+        if (_isClearingCache.value) return
+        _isClearingCache.value = true
+        viewModelScope.launch {
+            val freed = withContext(Dispatchers.IO) {
+                val cacheDir = getApplication<Application>().cacheDir ?: return@withContext 0L
+                val before = cacheDir.directorySize()
+                cacheDir.listFiles()?.forEach { it.deleteRecursively() }
+                before
+            }
+            _cacheSizeBytes.value = withContext(Dispatchers.IO) {
+                getApplication<Application>().cacheDir?.directorySize() ?: 0L
+            }
+            _isClearingCache.value = false
+            onComplete(freed)
+        }
+    }
+
+    private fun File.directorySize(): Long {
+        if (!exists()) return 0L
+        return walkBottomUp().filter { it.isFile }.sumOf { it.length() }
+    }
 
     fun setTheme(mode: ThemeMode) {
         viewModelScope.launch {

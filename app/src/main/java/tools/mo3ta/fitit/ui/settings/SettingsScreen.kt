@@ -1,6 +1,8 @@
 package tools.mo3ta.fitit.ui.settings
 
 import android.content.pm.PackageManager
+import android.text.format.Formatter
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.*
@@ -39,9 +42,42 @@ fun SettingsScreen(
     val themeMode by viewModel.themeMode.collectAsState()
     val currentLocale = viewModel.getCurrentLocale()
     val isNotificationsEnabled = viewModel.isNotificationsEnabled()
+    val cacheSizeBytes by viewModel.cacheSizeBytes.collectAsState()
+    val isClearingCache by viewModel.isClearingCache.collectAsState()
+    var showClearCacheDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         AnalyticsManager.trackScreenView("settings")
+        viewModel.refreshCacheSize()
+    }
+
+    if (showClearCacheDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearCacheDialog = false },
+            title = { Text(stringResource(R.string.clear_cache_dialog_title)) },
+            text = { Text(stringResource(R.string.clear_cache_dialog_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showClearCacheDialog = false
+                    viewModel.clearCache { freedBytes ->
+                        AnalyticsManager.trackCacheCleared(freedBytes)
+                        val message = if (freedBytes > 0) {
+                            context.getString(R.string.clear_cache_done)
+                        } else {
+                            context.getString(R.string.clear_cache_empty)
+                        }
+                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                    }
+                }) {
+                    Text(stringResource(R.string.clear_cache_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearCacheDialog = false }) {
+                    Text(stringResource(R.string.clear_cache_cancel))
+                }
+            }
+        )
     }
 
     Column(
@@ -188,6 +224,31 @@ fun SettingsScreen(
                         modifier = Modifier.padding(start = 14.dp)
                     )
                 }
+            }
+
+            // Storage Section
+            SectionHeader(stringResource(R.string.storage))
+
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 20.dp),
+                shape = RoundedCornerShape(14.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh
+            ) {
+                val readableSize = remember(cacheSizeBytes) {
+                    Formatter.formatShortFileSize(context, cacheSizeBytes)
+                }
+                SettingsActionRow(
+                    icon = Icons.Default.DeleteSweep,
+                    title = stringResource(R.string.clear_cache),
+                    subtitle = stringResource(R.string.clear_cache_hint, readableSize),
+                    onClick = {
+                        if (!isClearingCache && cacheSizeBytes > 0) {
+                            showClearCacheDialog = true
+                        }
+                    }
+                )
             }
 
             // About Section
