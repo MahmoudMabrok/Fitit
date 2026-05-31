@@ -27,6 +27,7 @@ import tools.mo3ta.fitit.analytics.AnalyticsManager
 import java.io.File
 import java.io.IOException
 import java.nio.ByteBuffer
+import kotlin.math.roundToLong
 
 data class VideoChunk(
     val file: File,
@@ -35,6 +36,14 @@ data class VideoChunk(
     val index: Int,
     val fileSizeBytes: Long = 0L
 )
+
+/** How the video is divided into clips. */
+enum class SplitMode {
+    /** Every clip has the same fixed duration (with a small overlap). */
+    FIXED,
+    /** The user supplies explicit split points, e.g. 5, 8, 12. */
+    CUSTOM
+}
 
 class VideoSplitterViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -54,18 +63,75 @@ class VideoSplitterViewModel(application: Application) : AndroidViewModel(applic
         private set
     var videoFileSizeBytes by mutableStateOf(0L)
         private set
-    var chunkSizeSeconds by mutableStateOf(CHUNK_STEP_MS.toInt() / 1000)
+    var splitMode by mutableStateOf(SplitMode.FIXED)
+        private set
+    // Fixed-duration mode: clip length in seconds (decimals allowed), held as the
+    // raw text the user typed so values like "2.5" round-trip cleanly.
+    var fixedSizeInput by mutableStateOf(formatSeconds(DEFAULT_CHUNK_SIZE_MS))
+        private set
+    // Custom mode: comma-separated split points in seconds, e.g. "5, 8, 12".
+    var customTimesInput by mutableStateOf("")
         private set
 
     val isDurationValid: Boolean
         get() = videoDurationMs in 1..MAX_DURATION_MS
 
-    val isSplitEnabled: Boolean
-        get() = selectedVideoUri != null && isDurationValid && !isProcessing &&
-                videoDurationMs >= chunkSizeSeconds * 1000L
+    /** Parsed fixed clip length in milliseconds, or null when the input is invalid. */
+    val parsedChunkSizeMs: Long?
+        get() {
+            val seconds = fixedSizeInput.trim().toDoubleOrNull() ?: return null
+            if (seconds <= 0.0) return null
+            return (seconds * 1000.0).roundToLong()
+        }
 
-    fun setChunkSize(seconds: Int) {
-        chunkSizeSeconds = seconds.coerceIn(CHUNK_SIZE_MIN_S, CHUNK_SIZE_MAX_S)
+    /** Parsed custom split points in milliseconds, or null when the input is invalid. */
+    val parsedCustomTimesMs: List<Long>?
+        get() = parseSplitTimes(customTimesInput)
+
+    /** True when the fixed-size field holds text that cannot produce a valid clip length. */
+    val fixedSizeFieldError: Boolean
+        get() {
+            if (fixedSizeInput.isBlank()) return false
+            val ms = parsedChunkSizeMs ?: return true
+            return ms !in CHUNK_SIZE_MIN_MS..CHUNK_SIZE_MAX_MS
+        }
+
+    /** True when the custom-times field holds text that cannot produce valid split points. */
+    val customTimesFieldError: Boolean
+        get() {
+            if (customTimesInput.isBlank()) return false
+            val times = parseSplitTimes(customTimesInput) ?: return true
+            if (times.isEmpty()) return true
+            return videoDurationMs > 0 && times.any { it > videoDurationMs }
+        }
+
+    val isSplitEnabled: Boolean
+        get() = selectedVideoUri != null && isDurationValid && !isProcessing && when (splitMode) {
+            SplitMode.FIXED -> {
+                val ms = parsedChunkSizeMs
+                ms != null && ms in CHUNK_SIZE_MIN_MS..CHUNK_SIZE_MAX_MS && videoDurationMs >= ms
+            }
+            SplitMode.CUSTOM -> {
+                val times = parsedCustomTimesMs
+                times != null && times.isNotEmpty() && times.all { it in 1..videoDurationMs }
+            }
+        }
+
+    fun setSplitMode(mode: SplitMode) {
+        if (splitMode != mode) {
+            splitMode = mode
+            chunks = emptyList()
+            errorMessage = null
+        }
+    }
+
+    fun setFixedSizeInput(input: String) {
+        fixedSizeInput = input
+        chunks = emptyList()
+    }
+
+    fun setCustomTimesInput(input: String) {
+        customTimesInput = input
         chunks = emptyList()
     }
 
@@ -98,7 +164,12 @@ class VideoSplitterViewModel(application: Application) : AndroidViewModel(applic
 
             try {
                 val outputDir = File(context.cacheDir, "video_chunks").also { it.mkdirs() }
-                val ranges = calculateChunks(videoDurationMs, chunkSizeSeconds * 1000L)
+                val ranges = when (splitMode) {
+                    SplitMode.FIXED ->
+                        calculateChunks(videoDurationMs, parsedChunkSizeMs ?: DEFAULT_CHUNK_SIZE_MS)
+                    SplitMode.CUSTOM ->
+                        calculateChunksFromTimes(videoDurationMs, parsedCustomTimesMs ?: emptyList())
+                }
                 chunks = withContext(Dispatchers.IO) {
                     ranges.mapIndexed { i, range ->
                         val outputFile = File(outputDir, "chunk_${range.index}.mp4")

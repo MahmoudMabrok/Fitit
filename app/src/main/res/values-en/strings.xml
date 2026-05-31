@@ -138,7 +138,7 @@
     <string name="tool_video_splitter">Video Splitter</string>
     <string name="tool_video_splitter_desc">Split a video into short clips ready to share</string>
     <string name="video_splitter_title">Video Splitter</string>
-    <string name="video_splitter_feature_desc">Pick a video up to 5 minutes. It will be split into 30-second clips with a 2-second overlap between each clip.</string>
+    <string name="video_splitter_feature_desc">Pick a video up to 5 minutes. Split it into fixed-length clips (any duration, even fractions of a second) or at your own custom split points.</string>
     <string name="video_splitter_pick_video">Pick a video from gallery</string>
     <string name="video_splitter_duration_error">Video exceeds the 5-minute limit</string>
     <string name="video_splitter_split_button">Split</string>
@@ -154,6 +154,15 @@
     <string name="video_splitter_no_player">No video player app found</string>
     <string name="video_splitter_chunk_size_label">Clip duration</string>
     <string name="video_splitter_seconds_unit">s</string>
+    <string name="video_splitter_mode_fixed">Fixed duration</string>
+    <string name="video_splitter_mode_custom">Custom times</string>
+    <string name="video_splitter_chunk_size_placeholder">e.g. 2.5</string>
+    <string name="video_splitter_chunk_size_helper">Enter a clip length in seconds. Decimals are allowed, e.g. 0.5 or 2.5.</string>
+    <string name="video_splitter_chunk_size_error">Enter a duration between 0.5 and 60 seconds.</string>
+    <string name="video_splitter_custom_times_label">Split points (seconds)</string>
+    <string name="video_splitter_custom_times_placeholder">e.g. 5, 8, 12</string>
+    <string name="video_splitter_custom_times_helper">Enter times in seconds separated by commas. Each time ends a clip — 5, 8, 12 makes 0–5, 5–8 and 8–12.</string>
+    <string name="video_splitter_custom_times_error">Enter increasing times within the video length, separated by commas.</string>
     <string name="tool_video_enhancer">Video Enhancer</string>
     <string name="tool_video_enhancer_desc">Sharpen and upscale video quality, on-device</string>
     <string name="video_enhancer_title">Video Enhancer</string>
