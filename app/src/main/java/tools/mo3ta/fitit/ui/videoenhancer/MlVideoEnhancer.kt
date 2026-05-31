@@ -27,10 +27,12 @@ import kotlin.math.roundToInt
 /**
  * Super-resolution video enhancer backed by a TensorFlow Lite model ([MlSuperResolution]).
  *
- * Unlike the GL pipeline, this path needs CPU bitmaps, so it pulls already-display-oriented frames
- * with [MediaMetadataRetriever.getFrameAtIndex] (API 28+), runs each through the model, and re-encodes
- * them. Because the frames are already upright the output carries no rotation hint, which sidesteps
- * the aspect-ratio pitfalls of the surface pipeline entirely.
+ * Unlike the GL pipeline, this path needs CPU bitmaps, so it pulls frames with
+ * [MediaMetadataRetriever.getFrameAtIndex] (API 28+), runs each through the model, and re-encodes
+ * them. Whether [MediaMetadataRetriever.getFrameAtIndex] applies the source rotation is undocumented
+ * and varies by device, so we detect it: if the extracted frame keeps the source's coded orientation
+ * the rotation is reproduced via the muxer's orientation hint; if the retriever already delivered an
+ * upright frame, no hint is written. Either way the output keeps the same orientation as the input.
  *
  * This is the heavier, experimental engine; it only runs when a model binary is bundled in assets and
  * the device is API 28+. Otherwise [VideoEnhancer] falls back to the GL engine.
@@ -69,6 +71,35 @@ object MlVideoEnhancer {
         return scaled
     }
 
+    /** Coded dimensions and rotation of the source video track. */
+    private data class SourceVideoInfo(val codedWidth: Int, val codedHeight: Int, val rotation: Int)
+
+    /**
+     * Reads the source video track's *coded* dimensions and rotation. The coded dimensions (the
+     * orientation the pixels are actually stored in, before any rotation) let us tell whether
+     * [MediaMetadataRetriever.getFrameAtIndex] handed back an already-rotated frame. Falls back to
+     * [fallbackRotation] when the track format omits the rotation key.
+     */
+    private fun readSourceVideoInfo(context: Context, uri: Uri, fallbackRotation: Int): SourceVideoInfo {
+        val extractor = MediaExtractor()
+        try {
+            extractor.setDataSource(context, uri, null)
+            for (i in 0 until extractor.trackCount) {
+                val fmt = extractor.getTrackFormat(i)
+                val mime = fmt.getString(MediaFormat.KEY_MIME) ?: continue
+                if (!mime.startsWith("video/")) continue
+                val width = if (fmt.containsKey(MediaFormat.KEY_WIDTH)) fmt.getInteger(MediaFormat.KEY_WIDTH) else 0
+                val height = if (fmt.containsKey(MediaFormat.KEY_HEIGHT)) fmt.getInteger(MediaFormat.KEY_HEIGHT) else 0
+                val rotation =
+                    if (fmt.containsKey(MediaFormat.KEY_ROTATION)) fmt.getInteger(MediaFormat.KEY_ROTATION) else fallbackRotation
+                return SourceVideoInfo(width, height, rotation)
+            }
+        } finally {
+            extractor.release()
+        }
+        return SourceVideoInfo(0, 0, fallbackRotation)
+    }
+
     /**
      * Super-resolves [uri] into [output] using the bundled TensorFlow Lite model.
      *
@@ -98,6 +129,7 @@ object MlVideoEnhancer {
         val meta = MediaMetadataRetriever()
         val frameRate: Int
         val frameCount: Int
+        val srcRotation: Int
         try {
             meta.setDataSource(context, uri)
             frameRate = meta
@@ -109,9 +141,13 @@ object MlVideoEnhancer {
                 .extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT)?.toIntOrNull()
             frameCount = (metaFrameCount?.takeIf { it > 0 }
                 ?: (durationMs / 1000.0 * frameRate).toInt()).coerceAtLeast(1)
+            srcRotation = meta
+                .extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull() ?: 0
         } finally {
             runCatching { meta.release() }
         }
+        // Coded dimensions + rotation, used to reproduce the source orientation on the output.
+        val source = readSourceVideoInfo(context, uri, srcRotation)
 
         // Throttled progress: tile callbacks fire many times per frame, so only forward real steps.
         var lastReported = -1f
@@ -157,6 +193,9 @@ object MlVideoEnhancer {
                     firstInput.recycle()
                     val outWidth = evenDimension(firstUpscaled.width)
                     val outHeight = evenDimension(firstUpscaled.height)
+                    val outOrientationHint = orientationHint(
+                        source.rotation, source.codedWidth, source.codedHeight, firstUpscaled.width, firstUpscaled.height,
+                    )
 
                     val outFormat = MediaFormat.createVideoFormat(VIDEO_MIME, outWidth, outHeight).apply {
                         setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface)
@@ -174,9 +213,11 @@ object MlVideoEnhancer {
                     val renderer = BitmapRenderer(outWidth, outHeight)
                     enc.start()
 
-                    // Frames are already display-oriented, so no orientation hint is needed.
                     val mux = MediaMuxer(output.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
                     muxer = mux
+                    // Reproduce the source orientation when the extracted frames were not already
+                    // rotated by the retriever (see [orientationHint]). Must be set before mux.start().
+                    mux.setOrientationHint(outOrientationHint)
 
                     val bufferInfo = MediaCodec.BufferInfo()
                     var muxerStarted = false
