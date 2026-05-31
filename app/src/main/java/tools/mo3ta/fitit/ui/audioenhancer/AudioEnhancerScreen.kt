@@ -189,13 +189,18 @@ fun AudioEnhancerScreen(
                         fileSizeBytes = viewModel.resultSizeBytes,
                         isSaved = viewModel.isSaved,
                         isPlaying = viewModel.isPreviewPlaying,
+                        previewSource = viewModel.previewSource,
                         readyLabel = stringResource(R.string.audio_enhancer_done),
                         playLabel = stringResource(R.string.audio_enhancer_play),
                         pauseLabel = stringResource(R.string.audio_enhancer_pause),
+                        compareLabel = stringResource(R.string.audio_enhancer_compare),
+                        originalLabel = stringResource(R.string.audio_enhancer_original),
+                        enhancedLabel = stringResource(R.string.audio_enhancer_enhanced),
                         saveLabel = stringResource(R.string.audio_enhancer_save),
                         savedLabel = stringResource(R.string.audio_enhancer_saved),
                         shareLabel = stringResource(R.string.audio_enhancer_share),
-                        onPreview = { viewModel.togglePreview() },
+                        onSelectSource = { viewModel.selectPreviewSource(context, it) },
+                        onPreview = { viewModel.togglePreview(context) },
                         onSave = { viewModel.saveResult(context) },
                         onShare = { viewModel.shareResult(context) }
                     )
@@ -381,12 +386,17 @@ private fun ResultCard(
     fileSizeBytes: Long,
     isSaved: Boolean,
     isPlaying: Boolean,
+    previewSource: PreviewSource,
     readyLabel: String,
     playLabel: String,
     pauseLabel: String,
+    compareLabel: String,
+    originalLabel: String,
+    enhancedLabel: String,
     saveLabel: String,
     savedLabel: String,
     shareLabel: String,
+    onSelectSource: (PreviewSource) -> Unit,
     onPreview: () -> Unit,
     onSave: () -> Unit,
     onShare: () -> Unit
@@ -431,6 +441,34 @@ private fun ResultCard(
                 }
             }
 
+            // A/B compare: pick which track to hear, then play/pause it.
+            Text(
+                text = compareLabel,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
+                    .padding(3.dp),
+                horizontalArrangement = Arrangement.spacedBy(3.dp)
+            ) {
+                CompareTab(
+                    label = originalLabel,
+                    selected = previewSource == PreviewSource.ORIGINAL,
+                    onClick = { onSelectSource(PreviewSource.ORIGINAL) },
+                    modifier = Modifier.weight(1f)
+                )
+                CompareTab(
+                    label = enhancedLabel,
+                    selected = previewSource == PreviewSource.ENHANCED,
+                    onClick = { onSelectSource(PreviewSource.ENHANCED) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -505,6 +543,30 @@ private fun ResultCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun CompareTab(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(if (selected) MaterialTheme.colorScheme.surface else Color.Transparent)
+            .clickable { onClick() }
+            .padding(vertical = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            fontSize = 13.sp,
+            color = if (selected) Accent else MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

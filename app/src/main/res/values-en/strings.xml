@@ -241,4 +241,7 @@
     <string name="audio_enhancer_ai_fallback">AI model unavailable; cleaned with the standard noise removal.</string>
     <string name="audio_enhancer_play">Play</string>
     <string name="audio_enhancer_pause">Pause</string>
+    <string name="audio_enhancer_compare">Compare</string>
+    <string name="audio_enhancer_original">Original</string>
+    <string name="audio_enhancer_enhanced">Enhanced</string>
 </resources>

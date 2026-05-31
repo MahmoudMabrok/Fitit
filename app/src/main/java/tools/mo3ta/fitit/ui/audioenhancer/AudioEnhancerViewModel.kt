@@ -40,6 +40,8 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
         private set
     var isPreviewPlaying by mutableStateOf(false)
         private set
+    var previewSource by mutableStateOf(PreviewSource.ENHANCED)
+        private set
     var isProcessing by mutableStateOf(false)
         private set
 
@@ -182,9 +184,21 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
         try { AnalyticsManager.trackAudioEnhanceShared() } catch (_: Exception) {}
     }
 
-    /** Toggle in-app playback of the enhanced result, so users can hear it before saving. */
-    fun togglePreview() {
-        val file = resultFile ?: return
+    /**
+     * Switch the A/B preview between the original source and the enhanced result.
+     * If something is already playing, the newly-selected track starts playing so
+     * users can compare them back-to-back.
+     */
+    fun selectPreviewSource(context: Context, source: PreviewSource) {
+        if (source == previewSource) return
+        val wasPlaying = isPreviewPlaying
+        releasePreview()
+        previewSource = source
+        if (wasPlaying) togglePreview(context)
+    }
+
+    /** Toggle in-app playback of the currently-selected A/B preview track. */
+    fun togglePreview(context: Context) {
         val player = previewPlayer
         if (player != null && player.isPlaying) {
             player.pause()
@@ -198,7 +212,16 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
         }
         try {
             previewPlayer = MediaPlayer().apply {
-                setDataSource(file.absolutePath)
+                when (previewSource) {
+                    PreviewSource.ENHANCED -> {
+                        val file = resultFile ?: return
+                        setDataSource(file.absolutePath)
+                    }
+                    PreviewSource.ORIGINAL -> {
+                        val uri = selectedAudioUri ?: return
+                        setDataSource(context, uri)
+                    }
+                }
                 setOnCompletionListener {
                     isPreviewPlaying = false
                     it.seekTo(0)
@@ -207,7 +230,7 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
                 start()
             }
             isPreviewPlaying = true
-            try { AnalyticsManager.trackAudioEnhancePreviewed() } catch (_: Exception) {}
+            try { AnalyticsManager.trackAudioEnhancePreviewed(previewSource.name) } catch (_: Exception) {}
         } catch (_: Exception) {
             releasePreview()
         }
@@ -226,6 +249,7 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
 
     private fun resetResult() {
         releasePreview()
+        previewSource = PreviewSource.ENHANCED
         resultFile = null
         resultSizeBytes = 0L
         isSaved = false
@@ -260,3 +284,6 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
         null to 0L
     }
 }
+
+/** Which track the A/B preview is playing: the original source or the enhanced result. */
+enum class PreviewSource { ORIGINAL, ENHANCED }

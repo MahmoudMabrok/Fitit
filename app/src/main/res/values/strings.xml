@@ -241,4 +241,7 @@
     <string name="audio_enhancer_ai_fallback">نموذج الذكاء الاصطناعي غير متوفر؛ تم التنظيف بإزالة الضوضاء القياسية.</string>
     <string name="audio_enhancer_play">تشغيل</string>
     <string name="audio_enhancer_pause">إيقاف مؤقت</string>
+    <string name="audio_enhancer_compare">قارن</string>
+    <string name="audio_enhancer_original">الأصلي</string>
+    <string name="audio_enhancer_enhanced">المحسّن</string>
 </resources>
