@@ -81,6 +81,8 @@ object MlVideoEnhancer {
      *
      * [speedMode] trades quality for throughput by lowering the inference input resolution and,
      * for [MlSpeedMode.FAST], by skipping frames and repeating each upscaled frame to fill the gap.
+     * [inputShortSideCapOverride], when set, replaces the mode's resolution cap (used so the UI can
+     * let the user pick an exact Fast-mode cap); the mode still decides the frame stride.
      */
     @RequiresApi(Build.VERSION_CODES.P)
     suspend fun enhance(
@@ -89,10 +91,11 @@ object MlVideoEnhancer {
         output: File,
         level: EnhancementLevel,
         speedMode: MlSpeedMode = MlSpeedMode.BALANCED,
+        inputShortSideCapOverride: Int? = null,
         onProgress: (Float) -> Unit = {},
     ) = coroutineScope {
         val stride = speedMode.frameStride.coerceAtLeast(1)
-        val cap = speedMode.inputShortSideCap
+        val cap = (inputShortSideCapOverride ?: speedMode.inputShortSideCap).coerceAtLeast(1)
 
         // Read metadata up front so the producer knows its frame range; this retriever is then done.
         val meta = MediaMetadataRetriever()

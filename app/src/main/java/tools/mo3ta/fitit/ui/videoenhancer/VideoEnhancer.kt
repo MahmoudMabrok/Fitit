@@ -34,6 +34,7 @@ object VideoEnhancer {
      * @param engine which processing engine to use; [EnhanceEngine.ML] transparently falls back to
      *   [EnhanceEngine.GL] when no TensorFlow Lite model is bundled.
      * @param speedMode speed/quality trade-off for the [EnhanceEngine.ML] engine (ignored by GL).
+     * @param inputShortSideCapOverride optional exact ML input-resolution cap; overrides [speedMode]'s.
      * @param onProgress invoked with a 0f..1f completion fraction.
      * @return the engine that actually ran, so callers can surface an ML→GL fallback to the user.
      */
@@ -44,13 +45,14 @@ object VideoEnhancer {
         level: EnhancementLevel,
         engine: EnhanceEngine = EnhanceEngine.GL,
         speedMode: MlSpeedMode = MlSpeedMode.BALANCED,
+        inputShortSideCapOverride: Int? = null,
         onProgress: (Float) -> Unit = {},
     ): EnhanceEngine {
         if (engine == EnhanceEngine.ML &&
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
             MlVideoEnhancer.isAvailable(context)
         ) {
-            MlVideoEnhancer.enhance(context, uri, output, level, speedMode, onProgress)
+            MlVideoEnhancer.enhance(context, uri, output, level, speedMode, inputShortSideCapOverride, onProgress)
             return EnhanceEngine.ML
         }
 

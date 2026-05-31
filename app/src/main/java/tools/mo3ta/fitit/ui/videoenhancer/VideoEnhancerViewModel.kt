@@ -36,6 +36,8 @@ class VideoEnhancerViewModel(application: Application) : AndroidViewModel(applic
         private set
     var speedMode by mutableStateOf(MlSpeedMode.BALANCED)
         private set
+    var fastCapPx by mutableStateOf(MlSpeedMode.FAST.inputShortSideCap)
+        private set
     var aiFellBackToGl by mutableStateOf(false)
         private set
     var isProcessing by mutableStateOf(false)
@@ -79,6 +81,12 @@ class VideoEnhancerViewModel(application: Application) : AndroidViewModel(applic
         resetResult()
     }
 
+    fun changeFastCap(px: Int) {
+        if (isProcessing) return
+        fastCapPx = px
+        resetResult()
+    }
+
     fun onVideoSelected(uri: Uri, durationMs: Long) {
         selectedVideoUri = uri
         videoDurationMs = durationMs
@@ -96,6 +104,8 @@ class VideoEnhancerViewModel(application: Application) : AndroidViewModel(applic
         val context = getApplication<Application>()
 
         val requestedEngine = if (useAiUpscale) EnhanceEngine.ML else EnhanceEngine.GL
+        // Only Fast mode exposes a user-chosen resolution cap; other modes use their own.
+        val capOverride = if (speedMode == MlSpeedMode.FAST) fastCapPx else null
 
         viewModelScope.launch {
             isProcessing = true
@@ -110,7 +120,7 @@ class VideoEnhancerViewModel(application: Application) : AndroidViewModel(applic
                 val outputDir = File(context.cacheDir, "enhanced_videos").also { it.mkdirs() }
                 val outputFile = File(outputDir, "enhanced_${System.currentTimeMillis()}.mp4")
                 val usedEngine = withContext(Dispatchers.IO) {
-                    VideoEnhancer.enhance(context, uri, outputFile, level, requestedEngine, speedMode) { p ->
+                    VideoEnhancer.enhance(context, uri, outputFile, level, requestedEngine, speedMode, capOverride) { p ->
                         viewModelScope.launch(Dispatchers.Main) { progress = p }
                     }
                 }

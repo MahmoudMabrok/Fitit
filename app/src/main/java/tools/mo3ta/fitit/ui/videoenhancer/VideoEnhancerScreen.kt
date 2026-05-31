@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.PlayArrow
@@ -154,6 +155,10 @@ fun VideoEnhancerScreen(
                         enabled = !viewModel.isProcessing,
                         label = stringResource(R.string.video_enhancer_speed_label),
                         onSelect = viewModel::changeSpeedMode,
+                        fastCapPx = viewModel.fastCapPx,
+                        fastCapOptions = FAST_CAP_OPTIONS,
+                        fastCapLabel = stringResource(R.string.video_enhancer_speed_cap_label),
+                        onSelectFastCap = viewModel::changeFastCap,
                     )
                 }
             }
@@ -375,6 +380,10 @@ private fun SpeedModeSelector(
     enabled: Boolean,
     label: String,
     onSelect: (MlSpeedMode) -> Unit,
+    fastCapPx: Int,
+    fastCapOptions: List<Int>,
+    fastCapLabel: String,
+    onSelectFastCap: (Int) -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -419,6 +428,70 @@ private fun SpeedModeSelector(
                             color = if (isSelected) Accent else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
+                }
+            }
+
+            // Fast mode lets the user pick the exact input-resolution cap (lower = faster, blockier).
+            if (selected == MlSpeedMode.FAST) {
+                FastCapDropdown(
+                    selected = fastCapPx,
+                    options = fastCapOptions,
+                    label = fastCapLabel,
+                    enabled = enabled,
+                    onSelect = onSelectFastCap,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FastCapDropdown(
+    selected: Int,
+    options: List<Int>,
+    label: String,
+    enabled: Boolean,
+    onSelect: (Int) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Box {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f))
+                    .clickable(enabled = enabled) { expanded = true }
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = "$selected px",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Icon(
+                    Icons.Default.ArrowDropDown,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                options.forEach { px ->
+                    DropdownMenuItem(
+                        text = { Text("$px px") },
+                        onClick = {
+                            onSelect(px)
+                            expanded = false
+                        },
+                    )
                 }
             }
         }

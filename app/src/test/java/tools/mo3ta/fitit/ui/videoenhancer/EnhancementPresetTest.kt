@@ -104,4 +104,12 @@ class EnhancementPresetTest {
         // BALANCED is the default and must match the engine's previous fixed 270px behaviour.
         assertEquals(270, MlSpeedMode.BALANCED.inputShortSideCap)
     }
+
+    @Test
+    fun `fast cap options are the selectable defaults and include fast's own cap`() {
+        assertEquals(listOf(10, 50, 100, 120, 150, 170), FAST_CAP_OPTIONS)
+        // The default Fast selection must be a real menu entry, else the dropdown opens with no match.
+        assertTrue(MlSpeedMode.FAST.inputShortSideCap in FAST_CAP_OPTIONS)
+        assertTrue(FAST_CAP_OPTIONS.all { it > 0 })
+    }
 }
