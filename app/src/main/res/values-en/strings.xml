@@ -260,4 +260,13 @@
     <string name="audio_enhancer_error_no_audio">No audio track was found in this file</string>
     <string name="audio_enhancer_error_too_long">This clip is too long. Try one under 10 minutes.</string>
     <string name="audio_enhancer_error_generic">Could not enhance the audio, please try again</string>
+    <string name="audio_enhancer_ai_label">AI noise removal</string>
+    <string name="audio_enhancer_ai_desc">Remove background noise with an on-device AI model (GPU-accelerated when supported). Best for speech; slower than the standard clean-up.</string>
+    <string name="audio_enhancer_ai_unavailable">No AI model bundled — uses the standard noise removal.</string>
+    <string name="audio_enhancer_ai_fallback">AI model unavailable; cleaned with the standard noise removal.</string>
+    <string name="audio_enhancer_play">Play</string>
+    <string name="audio_enhancer_pause">Pause</string>
+    <string name="audio_enhancer_compare">Compare</string>
+    <string name="audio_enhancer_original">Original</string>
+    <string name="audio_enhancer_enhanced">Enhanced</string>
 </resources>

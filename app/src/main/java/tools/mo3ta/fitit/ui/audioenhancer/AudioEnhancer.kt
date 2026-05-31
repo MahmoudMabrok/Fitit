@@ -34,16 +34,28 @@ object AudioEnhancer {
     )
 
     /**
+     * Result of an enhancement: the output .m4a [file] and whether AI noise
+     * removal was requested but [aiFellBack] to the DSP denoiser (e.g. because the
+     * DTLN models are not bundled or failed to load on this device).
+     */
+    data class EnhanceResult(val file: File, val aiFellBack: Boolean)
+
+    /**
      * Enhance the audio at [uri] and return the resulting .m4a cache file.
-     * [onProgress] is reported in [0, 1] across decode (0–0.5), processing
-     * (0.5–0.7) and encode (0.7–1.0).
+     *
+     * @param useAi when true, denoise with the DTLN AI engine (falling back to the
+     *   DSP spectral-gating denoiser when it is unavailable). The clarity/loudness
+     *   stages always run afterwards on the platform pipeline.
+     * @param onProgress reported in [0, 1] across decode (0–0.5), processing
+     *   (0.5–0.7) and encode (0.7–1.0).
      */
     fun enhance(
         context: Context,
         uri: Uri,
         level: AudioEnhancementLevel,
+        useAi: Boolean = false,
         onProgress: (Float) -> Unit,
-    ): File {
+    ): EnhanceResult {
         val outputDir = File(context.cacheDir, "enhanced_audio").also { it.mkdirs() }
         val input = copyToCache(context, uri, outputDir)
         try {
@@ -52,8 +64,30 @@ object AudioEnhancer {
             if (decoded.pcm.isEmpty()) throw IOException("NO_AUDIO_TRACK")
 
             val channels = AudioDsp.deinterleave(decoded.pcm, decoded.channels)
-            enhanceChannels(channels, decoded.sampleRate, level) { p ->
-                onProgress(0.5f + p * 0.2f)
+
+            // AI denoise (DTLN) runs first, replacing the DSP denoise stage; the
+            // EQ / compression / loudness stages always follow on the channels.
+            var aiFellBack = false
+            if (useAi) {
+                val denoised = aiDenoise(context, channels, decoded.sampleRate) { p ->
+                    onProgress(0.5f + p * 0.15f)
+                }
+                if (denoised != null) {
+                    // The AI engine collapsed the audio to a mono clean signal;
+                    // mirror it across every channel, then run the clarity /
+                    // loudness stages while skipping the DSP denoise.
+                    for (c in channels.indices) channels[c] = denoised.copyOf()
+                    enhanceChannels(channels, decoded.sampleRate, level, skipDenoise = true) { p ->
+                        onProgress(0.65f + p * 0.05f)
+                    }
+                } else {
+                    aiFellBack = true
+                }
+            }
+            if (!useAi || aiFellBack) {
+                enhanceChannels(channels, decoded.sampleRate, level) { p ->
+                    onProgress(0.5f + p * 0.2f)
+                }
             }
             val processed = AudioDsp.interleave(channels)
 
@@ -62,9 +96,34 @@ object AudioEnhancer {
                 onProgress(0.7f + p * 0.3f)
             }
             onProgress(1f)
-            return output
+            return EnhanceResult(output, aiFellBack)
         } finally {
             input.delete()
+        }
+    }
+
+    /**
+     * Runs the DTLN AI denoiser on a mono down-mix at 16 kHz, then resamples the
+     * cleaned signal back to [sampleRate]. Returns null (so the caller can fall
+     * back to the DSP denoiser) when the models are unavailable or fail to load.
+     */
+    private fun aiDenoise(
+        context: Context,
+        channels: Array<FloatArray>,
+        sampleRate: Int,
+        onProgress: (Float) -> Unit,
+    ): FloatArray? {
+        if (!MlAudioDenoiser.isAvailable(context)) return null
+        val denoiser = MlAudioDenoiser.create(context) ?: return null
+        return try {
+            val mono = AudioDsp.mixToMono(channels)
+            val model = AudioDsp.resampleLinear(mono, sampleRate, MlAudioDenoiser.SAMPLE_RATE)
+            val cleaned = denoiser.denoise(model, onProgress)
+            AudioDsp.resampleLinear(cleaned, MlAudioDenoiser.SAMPLE_RATE, sampleRate)
+        } catch (_: Exception) {
+            null
+        } finally {
+            denoiser.close()
         }
     }
 

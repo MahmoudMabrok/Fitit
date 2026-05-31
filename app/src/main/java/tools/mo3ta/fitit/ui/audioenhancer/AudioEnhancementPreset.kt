@@ -63,18 +63,24 @@ enum class AudioEnhancementLevel(
  * @param sampleRate sample rate in Hz.
  * @param onStageProgress optional callback in [0, 1] reporting progress across
  *        the per-channel stages.
+ * @param skipDenoise when true the spectral-gating denoise stage is skipped —
+ *        used when the AI (DTLN) engine has already removed the noise, so only
+ *        the clarity / loudness stages run here.
  */
 fun enhanceChannels(
     channels: Array<FloatArray>,
     sampleRate: Int,
     level: AudioEnhancementLevel,
+    skipDenoise: Boolean = false,
     onStageProgress: ((Float) -> Unit)? = null,
 ): Array<FloatArray> {
     val total = channels.size.coerceAtLeast(1)
     for ((index, ch) in channels.withIndex()) {
         var s = ch
         s = AudioDsp.highPass(s, sampleRate, level.highPassHz)
-        s = AudioDsp.reduceNoise(s, strength = level.noiseStrength, floorDb = level.noiseFloorDb)
+        if (!skipDenoise) {
+            s = AudioDsp.reduceNoise(s, strength = level.noiseStrength, floorDb = level.noiseFloorDb)
+        }
         if (level.lowPassHz > 0f) {
             s = AudioDsp.lowPass(s, sampleRate, level.lowPassHz)
         }

@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -33,8 +34,18 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
         private set
     var level by mutableStateOf(AudioEnhancementLevel.STANDARD)
         private set
+    var useAiDenoise by mutableStateOf(false)
+        private set
+    var aiFellBack by mutableStateOf(false)
+        private set
+    var isPreviewPlaying by mutableStateOf(false)
+        private set
+    var previewSource by mutableStateOf(PreviewSource.ENHANCED)
+        private set
     var isProcessing by mutableStateOf(false)
         private set
+
+    private var previewPlayer: MediaPlayer? = null
     var progress by mutableStateOf(0f)
         private set
     var resultFile by mutableStateOf<File?>(null)
@@ -48,6 +59,16 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
 
     val isEnhanceEnabled: Boolean
         get() = selectedAudioUri != null && !isProcessing
+
+    /** Whether the bundled DTLN models make the AI denoise engine usable here. */
+    val isAiEngineAvailable: Boolean
+        get() = MlAudioDenoiser.isAvailable(getApplication<Application>())
+
+    fun changeAiDenoise(enabled: Boolean) {
+        if (isProcessing) return
+        useAiDenoise = enabled
+        resetResult()
+    }
 
     fun onAudioSelected(uri: Uri) {
         selectedAudioUri = uri
@@ -77,24 +98,27 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
         val uri = selectedAudioUri ?: return
         val context = getApplication<Application>()
         val selectedLevel = level
+        val ai = useAiDenoise
 
         viewModelScope.launch {
             isProcessing = true
             progress = 0f
             errorMessage = null
+            aiFellBack = false
             resetResult()
 
-            try { AnalyticsManager.trackAudioEnhanceStarted(selectedLevel.name) } catch (_: Exception) {}
+            try { AnalyticsManager.trackAudioEnhanceStarted(selectedLevel.name, ai) } catch (_: Exception) {}
 
             try {
-                val output = withContext(Dispatchers.IO) {
+                val result = withContext(Dispatchers.IO) {
                     // mutableStateOf writes are snapshot-thread-safe, so the progress
                     // callback can update directly from this IO thread.
-                    AudioEnhancer.enhance(context, uri, selectedLevel) { p -> progress = p }
+                    AudioEnhancer.enhance(context, uri, selectedLevel, useAi = ai) { p -> progress = p }
                 }
-                resultFile = output
-                resultSizeBytes = output.length()
-                try { AnalyticsManager.trackAudioEnhanceCompleted(selectedLevel.name) } catch (_: Exception) {}
+                resultFile = result.file
+                resultSizeBytes = result.file.length()
+                aiFellBack = result.aiFellBack
+                try { AnalyticsManager.trackAudioEnhanceCompleted(selectedLevel.name, ai && !result.aiFellBack) } catch (_: Exception) {}
             } catch (e: Exception) {
                 errorMessage = mapError(e)
             } finally {
@@ -160,11 +184,77 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
         try { AnalyticsManager.trackAudioEnhanceShared() } catch (_: Exception) {}
     }
 
+    /**
+     * Switch the A/B preview between the original source and the enhanced result.
+     * If something is already playing, the newly-selected track starts playing so
+     * users can compare them back-to-back.
+     */
+    fun selectPreviewSource(context: Context, source: PreviewSource) {
+        if (source == previewSource) return
+        val wasPlaying = isPreviewPlaying
+        releasePreview()
+        previewSource = source
+        if (wasPlaying) togglePreview(context)
+    }
+
+    /** Toggle in-app playback of the currently-selected A/B preview track. */
+    fun togglePreview(context: Context) {
+        val player = previewPlayer
+        if (player != null && player.isPlaying) {
+            player.pause()
+            isPreviewPlaying = false
+            return
+        }
+        if (player != null) {
+            player.start()
+            isPreviewPlaying = true
+            return
+        }
+        try {
+            previewPlayer = MediaPlayer().apply {
+                when (previewSource) {
+                    PreviewSource.ENHANCED -> {
+                        val file = resultFile ?: return
+                        setDataSource(file.absolutePath)
+                    }
+                    PreviewSource.ORIGINAL -> {
+                        val uri = selectedAudioUri ?: return
+                        setDataSource(context, uri)
+                    }
+                }
+                setOnCompletionListener {
+                    isPreviewPlaying = false
+                    it.seekTo(0)
+                }
+                prepare()
+                start()
+            }
+            isPreviewPlaying = true
+            try { AnalyticsManager.trackAudioEnhancePreviewed(previewSource.name) } catch (_: Exception) {}
+        } catch (_: Exception) {
+            releasePreview()
+        }
+    }
+
+    private fun releasePreview() {
+        previewPlayer?.let { runCatching { it.release() } }
+        previewPlayer = null
+        isPreviewPlaying = false
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        releasePreview()
+    }
+
     private fun resetResult() {
+        releasePreview()
+        previewSource = PreviewSource.ENHANCED
         resultFile = null
         resultSizeBytes = 0L
         isSaved = false
         progress = 0f
+        aiFellBack = false
     }
 
     private fun mapError(e: Exception): String {
@@ -194,3 +284,6 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
         null to 0L
     }
 }
+
+/** Which track the A/B preview is playing: the original source or the enhanced result. */
+enum class PreviewSource { ORIGINAL, ENHANCED }

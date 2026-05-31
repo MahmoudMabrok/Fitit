@@ -21,6 +21,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
@@ -129,6 +131,20 @@ fun AudioEnhancerScreen(
             }
 
             item {
+                AiDenoiseToggle(
+                    checked = viewModel.useAiDenoise,
+                    available = viewModel.isAiEngineAvailable,
+                    enabled = !viewModel.isProcessing,
+                    title = stringResource(R.string.audio_enhancer_ai_label),
+                    description = stringResource(
+                        if (viewModel.isAiEngineAvailable) R.string.audio_enhancer_ai_desc
+                        else R.string.audio_enhancer_ai_unavailable,
+                    ),
+                    onCheckedChange = viewModel::changeAiDenoise,
+                )
+            }
+
+            item {
                 EnhanceButton(
                     onClick = { viewModel.enhance() },
                     enabled = viewModel.isEnhanceEnabled,
@@ -157,6 +173,16 @@ fun AudioEnhancerScreen(
                 }
             }
 
+            if (viewModel.aiFellBack) {
+                item {
+                    Text(
+                        text = stringResource(R.string.audio_enhancer_ai_fallback),
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
             viewModel.errorMessage?.let { msg ->
                 item { ErrorCard(message = msg) }
             }
@@ -166,10 +192,19 @@ fun AudioEnhancerScreen(
                     ResultCard(
                         fileSizeBytes = viewModel.resultSizeBytes,
                         isSaved = viewModel.isSaved,
+                        isPlaying = viewModel.isPreviewPlaying,
+                        previewSource = viewModel.previewSource,
                         readyLabel = stringResource(R.string.audio_enhancer_done),
+                        playLabel = stringResource(R.string.audio_enhancer_play),
+                        pauseLabel = stringResource(R.string.audio_enhancer_pause),
+                        compareLabel = stringResource(R.string.audio_enhancer_compare),
+                        originalLabel = stringResource(R.string.audio_enhancer_original),
+                        enhancedLabel = stringResource(R.string.audio_enhancer_enhanced),
                         saveLabel = stringResource(R.string.audio_enhancer_save),
                         savedLabel = stringResource(R.string.audio_enhancer_saved),
                         shareLabel = stringResource(R.string.audio_enhancer_share),
+                        onSelectSource = { viewModel.selectPreviewSource(context, it) },
+                        onPreview = { viewModel.togglePreview(context) },
                         onSave = { viewModel.saveResult(context) },
                         onShare = { viewModel.shareResult(context) }
                     )
@@ -354,10 +389,19 @@ private fun EnhanceButton(onClick: () -> Unit, enabled: Boolean, label: String) 
 private fun ResultCard(
     fileSizeBytes: Long,
     isSaved: Boolean,
+    isPlaying: Boolean,
+    previewSource: PreviewSource,
     readyLabel: String,
+    playLabel: String,
+    pauseLabel: String,
+    compareLabel: String,
+    originalLabel: String,
+    enhancedLabel: String,
     saveLabel: String,
     savedLabel: String,
     shareLabel: String,
+    onSelectSource: (PreviewSource) -> Unit,
+    onPreview: () -> Unit,
     onSave: () -> Unit,
     onShare: () -> Unit
 ) {
@@ -398,6 +442,62 @@ private fun ResultCard(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                }
+            }
+
+            // A/B compare: pick which track to hear, then play/pause it.
+            Text(
+                text = compareLabel,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
+                    .padding(3.dp),
+                horizontalArrangement = Arrangement.spacedBy(3.dp)
+            ) {
+                CompareTab(
+                    label = originalLabel,
+                    selected = previewSource == PreviewSource.ORIGINAL,
+                    onClick = { onSelectSource(PreviewSource.ORIGINAL) },
+                    modifier = Modifier.weight(1f)
+                )
+                CompareTab(
+                    label = enhancedLabel,
+                    selected = previewSource == PreviewSource.ENHANCED,
+                    onClick = { onSelectSource(PreviewSource.ENHANCED) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Accent.copy(alpha = 0.10f))
+                    .clickable { onPreview() }
+                    .padding(vertical = 12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        contentDescription = null,
+                        tint = Accent,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        if (isPlaying) pauseLabel else playLabel,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp,
+                        color = Accent
+                    )
                 }
             }
 
@@ -446,6 +546,77 @@ private fun ResultCard(
                     Text(shareLabel, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun CompareTab(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(if (selected) MaterialTheme.colorScheme.surface else Color.Transparent)
+            .clickable { onClick() }
+            .padding(vertical = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            fontSize = 13.sp,
+            color = if (selected) Accent else MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun AiDenoiseToggle(
+    checked: Boolean,
+    available: Boolean,
+    enabled: Boolean,
+    title: String,
+    description: String,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = description,
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Switch(
+                checked = checked && available,
+                onCheckedChange = onCheckedChange,
+                enabled = enabled && available,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = Accent,
+                ),
+            )
         }
     }
 }

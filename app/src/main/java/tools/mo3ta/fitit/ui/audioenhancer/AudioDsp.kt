@@ -414,5 +414,44 @@ object AudioDsp {
 
     private fun pow10(x: Float): Float = Math.exp((x * ln(10f)).toDouble()).toFloat()
 
+    /**
+     * Down-mix [channels] to a single mono buffer by averaging the channels.
+     * Returns a copy; the inputs are left untouched. Used to feed the DTLN AI
+     * denoiser, which operates on mono audio.
+     */
+    fun mixToMono(channels: Array<FloatArray>): FloatArray {
+        require(channels.isNotEmpty()) { "need at least one channel" }
+        if (channels.size == 1) return channels[0].copyOf()
+        val n = channels[0].size
+        val out = FloatArray(n)
+        for (ch in channels) for (i in 0 until minOf(n, ch.size)) out[i] += ch[i]
+        val inv = 1f / channels.size
+        for (i in 0 until n) out[i] *= inv
+        return out
+    }
+
+    /**
+     * Linearly resample [signal] from [srcRate] to [dstRate] Hz. A simple
+     * interpolating resampler — adequate for the 16 kHz mono pre-processing the
+     * DTLN model expects. Returns a copy when the rates already match.
+     */
+    fun resampleLinear(signal: FloatArray, srcRate: Int, dstRate: Int): FloatArray {
+        require(srcRate > 0 && dstRate > 0) { "sample rates must be positive" }
+        if (srcRate == dstRate || signal.size < 2) return signal.copyOf()
+        val outLen = (signal.size.toLong() * dstRate / srcRate).toInt().coerceAtLeast(1)
+        val out = FloatArray(outLen)
+        val step = srcRate.toDouble() / dstRate
+        val last = signal.size - 1
+        for (i in 0 until outLen) {
+            val pos = i * step
+            val i0 = pos.toInt()
+            val frac = (pos - i0).toFloat()
+            val a = signal[i0.coerceIn(0, last)]
+            val b = signal[(i0 + 1).coerceIn(0, last)]
+            out[i] = a + (b - a) * frac
+        }
+        return out
+    }
+
     fun clamp(v: Float, lo: Float, hi: Float): Float = min(max(v, lo), hi)
 }
