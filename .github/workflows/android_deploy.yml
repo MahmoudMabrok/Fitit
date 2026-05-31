@@ -31,6 +31,11 @@ on:
           - beta
           - production
         default: internal
+      changes_not_sent_for_review:
+        description: 'Do NOT send changes for review (use when a permission declaration / manual review is required in Play Console)'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -162,6 +167,7 @@ jobs:
           track: ${{ github.event.inputs.track }}
           status: completed
           mappingFile: app/build/outputs/mapping/release/mapping.txt
+          changesNotSentForReview: ${{ github.event.inputs.changes_not_sent_for_review }}
 
       # Step 2: only once the publish to Google Play has succeeded do we commit
       # the bumped versionCode (and any versionName change) back to the repo.
