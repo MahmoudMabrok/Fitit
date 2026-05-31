@@ -18,7 +18,10 @@ firebaseCrashlytics = "19.2.1"
 googleGmsGoogleServices = "4.4.2"
 googleFirebaseCrashlytics = "3.0.2"
 firebaseAnalytics = "23.2.0"
-tensorflowLite = "2.16.1"
+# LiteRT is the successor to TensorFlow Lite. The V1 (1.x) line is a drop-in replacement that
+# keeps the org.tensorflow.lite.* Java packages and the Interpreter + GpuDelegate API, while
+# shipping 16 KB-page-aligned native libraries (required by Android 15+ / Google Play).
+litert = "1.4.0"
 
 
 [libraries]
@@ -45,9 +48,9 @@ mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics", version.ref = "firebaseCrashlytics" }
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics", version.ref = "firebaseAnalytics" }
-tensorflow-lite = { group = "org.tensorflow", name = "tensorflow-lite", version.ref = "tensorflowLite" }
-tensorflow-lite-gpu = { group = "org.tensorflow", name = "tensorflow-lite-gpu", version.ref = "tensorflowLite" }
-tensorflow-lite-gpu-api = { group = "org.tensorflow", name = "tensorflow-lite-gpu-api", version.ref = "tensorflowLite" }
+litert = { group = "com.google.ai.edge.litert", name = "litert", version.ref = "litert" }
+litert-gpu = { group = "com.google.ai.edge.litert", name = "litert-gpu", version.ref = "litert" }
+litert-gpu-api = { group = "com.google.ai.edge.litert", name = "litert-gpu-api", version.ref = "litert" }
 
 
 [plugins]
