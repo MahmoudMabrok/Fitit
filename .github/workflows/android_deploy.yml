@@ -142,6 +142,31 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
+      # Prove the bundle carries our release signature before we ship it. An .aab is
+      # a zip signed with the JAR (v1) scheme using the upload key, so jarsigner can
+      # verify it. This fails the run early if the signingConfig didn't apply (which
+      # would otherwise surface later as an "unsigned"/signature error in Play).
+      - name: Verify AAB is signed
+        if: ${{ github.event.inputs.build_type == 'aab' }}
+        run: |
+          set -euo pipefail
+          AAB=$(ls app/build/outputs/bundle/release/*.aab | head -n1)
+          echo "Verifying signature of $AAB"
+          if jarsigner -verify -strict "$AAB" > /tmp/jarsigner.out 2>&1; then
+            echo "--- AAB signature verified ---"
+          else
+            # -strict also returns non-zero for non-fatal warnings (e.g. self-signed
+            # upload cert), so only treat a genuinely missing signature as fatal.
+            if grep -qi "jar is unsigned" /tmp/jarsigner.out; then
+              echo "ERROR: the AAB is NOT signed. Check the release signingConfig and keystore secrets."
+              cat /tmp/jarsigner.out
+              exit 1
+            fi
+            echo "--- AAB is signed (jarsigner -strict reported only non-fatal warnings) ---"
+          fi
+          # Print the signer certificate so the run log records which key signed the upload.
+          keytool -printcert -jarfile "$AAB" | grep -E "Owner:|Issuer:|SHA256:" || true
+
       - name: Upload APK Artifact
         if: ${{ github.event.inputs.build_type == 'apk' }}
         uses: actions/upload-artifact@v4
@@ -169,6 +194,11 @@ jobs:
           # Play Console (use when a manual permission declaration / review is
           # required before the changes can be sent for review).
           status: ${{ github.event.inputs.submit_for_review == 'true' && 'completed' || 'draft' }}
+          # When drafting, tell the API the changes are NOT being sent for review.
+          # This lets the edit commit even while an App-content declaration (e.g. the
+          # foreground service permissions) is still pending; without it the commit
+          # can be rejected and no draft is saved.
+          changesNotSentForReview: ${{ github.event.inputs.submit_for_review == 'true' && 'false' || 'true' }}
           mappingFile: app/build/outputs/mapping/release/mapping.txt
 
       # Step 2: only once the publish to Google Play has succeeded do we commit
