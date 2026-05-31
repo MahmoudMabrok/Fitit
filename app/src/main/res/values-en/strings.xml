@@ -252,6 +252,9 @@
     <string name="audio_enhancer_level_light">Light</string>
     <string name="audio_enhancer_level_standard">Standard</string>
     <string name="audio_enhancer_level_strong">Strong</string>
+    <string name="audio_enhancer_batch_label">Enhancement passes</string>
+    <string name="audio_enhancer_batch_desc">Runs multiple passes, feeding each result back in as the next input</string>
+    <string name="audio_enhancer_batch_progress">Pass %1$d of %2$d</string>
     <string name="audio_enhancer_process">Enhance audio</string>
     <string name="audio_enhancer_done">Enhanced audio ready</string>
     <string name="audio_enhancer_save">Save</string>
