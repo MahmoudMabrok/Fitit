@@ -112,4 +112,34 @@ class EnhancementPresetTest {
         assertTrue(MlSpeedMode.FAST.inputShortSideCap in FAST_CAP_OPTIONS)
         assertTrue(FAST_CAP_OPTIONS.all { it > 0 })
     }
+
+    @Test
+    fun `orientationHint is zero for an upright source`() {
+        assertEquals(0, orientationHint(0, 1920, 1080, 3840, 2160))
+    }
+
+    @Test
+    fun `orientationHint reproduces rotation when the frame keeps the coded orientation`() {
+        // Portrait phone clip: coded landscape 1920x1080, rotation 90. The retriever returned a
+        // landscape (coded) frame, so the 90 degree hint must be reproduced.
+        assertEquals(90, orientationHint(90, 1920, 1080, 1280, 720))
+        assertEquals(270, orientationHint(270, 1920, 1080, 1280, 720))
+    }
+
+    @Test
+    fun `orientationHint drops the hint when the retriever already rotated the frame`() {
+        // Same source, but the retriever handed back an upright portrait frame: no hint needed.
+        assertEquals(0, orientationHint(90, 1920, 1080, 720, 1280))
+        assertEquals(0, orientationHint(270, 1920, 1080, 720, 1280))
+    }
+
+    @Test
+    fun `orientationHint reproduces rotation when coded dimensions are unknown`() {
+        assertEquals(90, orientationHint(90, 0, 0, 720, 1280))
+    }
+
+    @Test
+    fun `orientationHint ignores 180 degree sources`() {
+        assertEquals(0, orientationHint(180, 1920, 1080, 1920, 1080))
+    }
 }

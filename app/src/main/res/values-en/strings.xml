@@ -29,6 +29,12 @@
     <string name="app_name_label">App Name</string>
     <string name="version">Version</string>
     <string name="back">Back</string>
+    <string name="check_for_updates">Rate &amp; Updates</string>
+    <string name="check_for_updates_hint">Open the app\'s Google Play page</string>
+    <string name="share_app">Share App</string>
+    <string name="share_app_hint">Tell your friends about Zaki</string>
+    <string name="share_app_message">Check out Zaki, the content creator toolkit: %1$s</string>
+    <string name="share_app_chooser_title">Share via</string>
 
     <!-- Onboarding Screen -->
     <string name="onboarding_title">Welcome to Zaki</string>

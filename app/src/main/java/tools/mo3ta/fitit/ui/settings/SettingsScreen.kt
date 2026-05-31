@@ -9,7 +9,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.*
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -202,24 +206,63 @@ fun SettingsScreen(
                 shape = RoundedCornerShape(14.dp),
                 color = MaterialTheme.colorScheme.surfaceContainerHigh
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(14.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        stringResource(R.string.version),
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
+                Column {
+                    // Rate & Updates Row
+                    SettingsActionRow(
+                        icon = Icons.Default.SystemUpdate,
+                        title = stringResource(R.string.check_for_updates),
+                        subtitle = stringResource(R.string.check_for_updates_hint),
+                        onClick = {
+                            AnalyticsManager.trackPlayStoreOpened()
+                            viewModel.openPlayStore(context)
+                        }
                     )
-                    Text(
-                        versionName,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 14.sp
+
+                    Divider(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant
                     )
+
+                    // Share App Row
+                    SettingsActionRow(
+                        icon = Icons.Default.Share,
+                        title = stringResource(R.string.share_app),
+                        subtitle = stringResource(R.string.share_app_hint),
+                        onClick = {
+                            AnalyticsManager.trackShareApp()
+                            viewModel.shareApp(context)
+                        }
+                    )
+
+                    Divider(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant
+                    )
+
+                    // Version Row
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            stringResource(R.string.version),
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            versionName,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 14.sp
+                        )
+                    }
                 }
             }
 
@@ -234,6 +277,53 @@ fun SettingsScreen(
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
         }
+    }
+}
+
+@Composable
+private fun SettingsActionRow(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(14.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            icon,
+            contentDescription = null,
+            tint = PrimaryBlue,
+            modifier = Modifier.size(22.dp)
+        )
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 14.dp)
+        ) {
+            Text(
+                title,
+                color = MaterialTheme.colorScheme.onBackground,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                subtitle,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+        }
+        Icon(
+            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

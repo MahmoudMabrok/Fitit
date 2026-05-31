@@ -31,13 +31,23 @@ bundled at `assets/models/super_resolution.tflite` and upscales each frame throu
 (API 28+). On older devices, or if the model file is removed, the enhancer transparently falls
 back to this shader pipeline. See `assets/models/README.md` for the model's source/license/IO.
 
-### Aspect-ratio handling
+### Aspect-ratio & orientation handling
 
-The encoder and renderer are driven by the **coded** dimensions reported by the extractor's
-track format, *not* the display-oriented dimensions from `MediaMetadataRetriever`. For rotated
-clips (most phone-shot portrait video) these differ, and using the display dimensions would
+**GL pipeline:** The encoder and renderer are driven by the **coded** dimensions reported by the
+extractor's track format, *not* the display-oriented dimensions from `MediaMetadataRetriever`. For
+rotated clips (most phone-shot portrait video) these differ, and using the display dimensions would
 stretch the frame into a swapped resolution. Rotation is reproduced purely via the muxer's
-orientation hint, keeping the output aspect ratio identical to the source.
+orientation hint, keeping the output aspect ratio identical to the source. Because many decoders
+honour `KEY_ROTATION` and auto-rotate frames onto the surface (which would squash the frame and get
+double-rotated by the hint), the decoder's input format has `KEY_ROTATION` forced to 0 so frames
+always arrive in coded orientation and the muxer hint stays the single source of truth.
+
+**AI pipeline:** Frames come from `MediaMetadataRetriever.getFrameAtIndex`, whose rotation handling
+is undocumented and varies by device. Rather than assume the frames are upright, the engine compares
+the extracted frame's orientation against the source's coded dimensions (`orientationHint`): if the
+frame still matches the coded orientation the retriever did *not* rotate it, so the source rotation
+is reproduced via the muxer's orientation hint; if the frame is already swapped, no hint is written.
+Either way the AI output keeps the same orientation as the input.
 
 ---
 
