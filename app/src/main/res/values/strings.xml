@@ -157,6 +157,7 @@
     <string name="video_enhancer_speed_fast">سريع</string>
     <string name="video_enhancer_speed_balanced">متوازن</string>
     <string name="video_enhancer_speed_quality">جودة</string>
+    <string name="video_enhancer_speed_cap_label">حد الدقة</string>
     <string name="video_enhancer_enhance_button">تحسين الفيديو</string>
     <string name="video_enhancer_processing">جارٍ المعالجة… %d%%</string>
     <string name="video_enhancer_result_title">الفيديو المحسّن جاهز</string>

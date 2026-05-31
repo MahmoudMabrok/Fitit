@@ -157,6 +157,7 @@
     <string name="video_enhancer_speed_fast">Fast</string>
     <string name="video_enhancer_speed_balanced">Balanced</string>
     <string name="video_enhancer_speed_quality">Quality</string>
+    <string name="video_enhancer_speed_cap_label">Resolution cap</string>
     <string name="video_enhancer_enhance_button">Enhance Video</string>
     <string name="video_enhancer_processing">Processing… %d%%</string>
     <string name="video_enhancer_result_title">Enhanced video ready</string>
