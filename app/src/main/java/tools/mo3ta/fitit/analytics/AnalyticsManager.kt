@@ -35,6 +35,10 @@ object AnalyticsManager {
 
     fun trackNotificationsSettingsOpened() = log("zaki_settings_notifications_opened")
 
+    fun trackPlayStoreOpened() = log("zaki_settings_play_store_opened")
+
+    fun trackShareApp() = log("zaki_settings_share_app")
+
     fun trackVideoSplitStarted(durationMs: Long) =
         log("zaki_video_split_started", "duration_ms" to durationMs.toString())
 

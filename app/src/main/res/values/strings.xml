@@ -29,6 +29,12 @@
     <string name="app_name_label">اسم التطبيق</string>
     <string name="version">الإصدار</string>
     <string name="back">رجوع</string>
+    <string name="check_for_updates">التقييم والتحديثات</string>
+    <string name="check_for_updates_hint">افتح صفحة التطبيق على جوجل بلاي</string>
+    <string name="share_app">مشاركة التطبيق</string>
+    <string name="share_app_hint">أخبر أصدقاءك عن ذكي</string>
+    <string name="share_app_message">جرّب تطبيق ذكي، مجموعة أدوات صانع المحتوى: %1$s</string>
+    <string name="share_app_chooser_title">مشاركة عبر</string>
 
     <!-- Onboarding Screen -->
     <string name="onboarding_title">مرحباً بك في ذكي</string>
