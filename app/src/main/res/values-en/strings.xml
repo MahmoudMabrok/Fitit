@@ -175,6 +175,16 @@
     <string name="video_enhancer_share">Share</string>
     <string name="video_enhancer_no_player">No video player app found</string>
     <string name="video_enhancer_error_generic">Enhancement failed, please try again</string>
+    <string name="video_enhancer_background_hint">You can leave the app — enhancement keeps running and we\'ll notify you when it\'s ready.</string>
+    <string name="video_enhancer_notification_channel_progress">Video enhancement progress</string>
+    <string name="video_enhancer_notification_channel_done">Video enhancement results</string>
+    <string name="video_enhancer_notification_processing_title">Enhancing video</string>
+    <string name="video_enhancer_notification_processing_text">%d%% • You can leave the app</string>
+    <string name="video_enhancer_notification_done_title">Enhanced video ready</string>
+    <string name="video_enhancer_notification_done_text">Tap to open in the app</string>
+    <string name="video_enhancer_notification_done_saved">Saved to gallery • Tap to open</string>
+    <string name="video_enhancer_notification_failed_title">Enhancement failed</string>
+    <string name="video_enhancer_notification_failed_text">Tap to open and try again</string>
 
     <!-- Audio Extractor Screen -->
     <string name="tool_audio_extractor">Audio Extractor</string>

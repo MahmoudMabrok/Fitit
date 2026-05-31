@@ -175,6 +175,16 @@
     <string name="video_enhancer_share">مشاركة</string>
     <string name="video_enhancer_no_player">لا يوجد تطبيق لتشغيل الفيديو</string>
     <string name="video_enhancer_error_generic">فشل تحسين الفيديو، حاول مرة أخرى</string>
+    <string name="video_enhancer_background_hint">يمكنك مغادرة التطبيق — ستستمر المعالجة وسنُعلمك عند جاهزية الفيديو.</string>
+    <string name="video_enhancer_notification_channel_progress">تقدّم تحسين الفيديو</string>
+    <string name="video_enhancer_notification_channel_done">نتائج تحسين الفيديو</string>
+    <string name="video_enhancer_notification_processing_title">جارٍ تحسين الفيديو</string>
+    <string name="video_enhancer_notification_processing_text">%d%% • يمكنك مغادرة التطبيق</string>
+    <string name="video_enhancer_notification_done_title">الفيديو المحسّن جاهز</string>
+    <string name="video_enhancer_notification_done_text">اضغط للفتح في التطبيق</string>
+    <string name="video_enhancer_notification_done_saved">تم الحفظ في المعرض • اضغط للفتح</string>
+    <string name="video_enhancer_notification_failed_title">فشل تحسين الفيديو</string>
+    <string name="video_enhancer_notification_failed_text">اضغط للفتح والمحاولة مجددًا</string>
 
     <!-- Audio Extractor Screen -->
     <string name="tool_audio_extractor">استخراج الصوت</string>

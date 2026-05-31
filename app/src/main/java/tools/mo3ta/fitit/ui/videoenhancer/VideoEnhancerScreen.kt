@@ -191,6 +191,12 @@ fun VideoEnhancerScreen(
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        Text(
+                            text = stringResource(R.string.video_enhancer_background_hint),
+                            fontSize = 12.sp,
+                            lineHeight = 16.sp,
+                            color = Accent,
+                        )
                     }
                 }
             }
