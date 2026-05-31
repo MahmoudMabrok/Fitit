@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import tools.mo3ta.fitit.R
 import tools.mo3ta.fitit.analytics.AnalyticsManager
+import tools.mo3ta.fitit.ui.common.KeepScreenOn
 
 private val RedAccent = Color(0xFFFF3B30)
 private val RedDark   = Color(0xFFCC2222)
@@ -61,6 +62,9 @@ fun VideoSplitterScreen(
     LaunchedEffect(Unit) {
         AnalyticsManager.trackScreenView("video_splitter")
     }
+
+    // Keep the screen awake while processing; released automatically when it ends.
+    KeepScreenOn(viewModel.isProcessing)
 
     val videoPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
