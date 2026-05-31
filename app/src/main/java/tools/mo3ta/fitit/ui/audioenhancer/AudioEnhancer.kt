@@ -59,7 +59,30 @@ object AudioEnhancer {
         val outputDir = File(context.cacheDir, "enhanced_audio").also { it.mkdirs() }
         val input = copyToCache(context, uri, outputDir)
         try {
-            onProgress(0f)
+            return enhance(context, input, level, useAi, onProgress)
+        } finally {
+            input.delete()
+        }
+    }
+
+    /**
+     * Enhance a local [file] directly and return the resulting .m4a cache file.
+     *
+     * Used by batch enhancement, where each pass feeds the previous pass's output
+     * file back in as the next input. The input [file] is left intact; the caller
+     * owns its lifecycle.
+     */
+    fun enhance(
+        context: Context,
+        file: File,
+        level: AudioEnhancementLevel,
+        useAi: Boolean = false,
+        onProgress: (Float) -> Unit,
+    ): EnhanceResult {
+        val outputDir = File(context.cacheDir, "enhanced_audio").also { it.mkdirs() }
+        val input = file
+        onProgress(0f)
+        run {
             val decoded = decode(input.absolutePath) { p -> onProgress(p * 0.5f) }
             if (decoded.pcm.isEmpty()) throw IOException("NO_AUDIO_TRACK")
 
@@ -97,8 +120,6 @@ object AudioEnhancer {
             }
             onProgress(1f)
             return EnhanceResult(output, aiFellBack)
-        } finally {
-            input.delete()
         }
     }
 

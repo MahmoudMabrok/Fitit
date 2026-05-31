@@ -131,6 +131,17 @@ fun AudioEnhancerScreen(
             }
 
             item {
+                BatchSizeSelector(
+                    selected = viewModel.batchSize,
+                    sizes = AudioEnhancerViewModel.BATCH_SIZES,
+                    label = stringResource(R.string.audio_enhancer_batch_label),
+                    description = stringResource(R.string.audio_enhancer_batch_desc),
+                    enabled = !viewModel.isProcessing,
+                    onSelect = viewModel::changeBatchSize
+                )
+            }
+
+            item {
                 AiDenoiseToggle(
                     checked = viewModel.useAiDenoise,
                     available = viewModel.isAiEngineAvailable,
@@ -169,6 +180,17 @@ fun AudioEnhancerScreen(
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        if (viewModel.batchSize > 1) {
+                            Text(
+                                text = stringResource(
+                                    R.string.audio_enhancer_batch_progress,
+                                    viewModel.batchCurrentPass,
+                                    viewModel.batchSize
+                                ),
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
@@ -319,6 +341,53 @@ private fun LevelSelector(
                         isSelected = lvl == selected,
                         enabled = enabled,
                         onClick = { onSelect(lvl) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BatchSizeSelector(
+    selected: Int,
+    sizes: List<Int>,
+    label: String,
+    description: String,
+    enabled: Boolean,
+    onSelect: (Int) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = label,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = description,
+                fontSize = 12.sp,
+                lineHeight = 16.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                sizes.forEach { size ->
+                    LevelChip(
+                        title = size.toString(),
+                        isSelected = size == selected,
+                        enabled = enabled,
+                        onClick = { onSelect(size) },
                         modifier = Modifier.weight(1f)
                     )
                 }

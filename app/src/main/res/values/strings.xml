@@ -252,6 +252,9 @@
     <string name="audio_enhancer_level_light">خفيف</string>
     <string name="audio_enhancer_level_standard">قياسي</string>
     <string name="audio_enhancer_level_strong">قوي</string>
+    <string name="audio_enhancer_batch_label">عدد مرات التحسين</string>
+    <string name="audio_enhancer_batch_desc">يُعاد تحسين الناتج عدة مرات، حيث يصبح ناتج كل مرة مدخلًا للمرة التالية</string>
+    <string name="audio_enhancer_batch_progress">المرحلة %1$d من %2$d</string>
     <string name="audio_enhancer_process">تحسين الصوت</string>
     <string name="audio_enhancer_done">الصوت المحسّن جاهز</string>
     <string name="audio_enhancer_save">حفظ</string>

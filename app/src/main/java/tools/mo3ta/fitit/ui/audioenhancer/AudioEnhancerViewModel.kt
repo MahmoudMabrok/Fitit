@@ -36,6 +36,15 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
         private set
     var useAiDenoise by mutableStateOf(false)
         private set
+    /**
+     * How many enhancement passes to run. Each pass feeds its output back in as the
+     * input of the next one, so a batch size of 3 enhances the audio three times in a row.
+     */
+    var batchSize by mutableStateOf(1)
+        private set
+    /** 1-based index of the pass currently running (0 when idle). Drives the batch progress label. */
+    var batchCurrentPass by mutableStateOf(0)
+        private set
     var aiFellBack by mutableStateOf(false)
         private set
     var isPreviewPlaying by mutableStateOf(false)
@@ -94,11 +103,20 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
         resetResult()
     }
 
+    fun changeBatchSize(newSize: Int) {
+        if (isProcessing) return
+        val clamped = newSize.coerceIn(1, BATCH_SIZES.last())
+        if (clamped == batchSize) return
+        batchSize = clamped
+        resetResult()
+    }
+
     fun enhance() {
         val uri = selectedAudioUri ?: return
         val context = getApplication<Application>()
         val selectedLevel = level
         val ai = useAiDenoise
+        val passes = batchSize.coerceAtLeast(1)
 
         viewModelScope.launch {
             isProcessing = true
@@ -106,6 +124,7 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
             errorMessage = null
             aiFellBack = false
             resetResult()
+            batchCurrentPass = 1
 
             try { AnalyticsManager.trackAudioEnhanceStarted(selectedLevel.name, ai) } catch (_: Exception) {}
 
@@ -113,7 +132,27 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
                 val result = withContext(Dispatchers.IO) {
                     // mutableStateOf writes are snapshot-thread-safe, so the progress
                     // callback can update directly from this IO thread.
-                    AudioEnhancer.enhance(context, uri, selectedLevel, useAi = ai) { p -> progress = p }
+                    var lastFile: File? = null
+                    var fellBack = false
+                    for (pass in 0 until passes) {
+                        batchCurrentPass = pass + 1
+                        // First pass reads the picked source; later passes feed the
+                        // previous pass's output back in as the new input.
+                        val cycle = if (pass == 0) {
+                            AudioEnhancer.enhance(context, uri, selectedLevel, useAi = ai) { p ->
+                                progress = (pass + p) / passes
+                            }
+                        } else {
+                            AudioEnhancer.enhance(context, lastFile!!, selectedLevel, useAi = ai) { p ->
+                                progress = (pass + p) / passes
+                            }
+                        }
+                        // Drop the now-superseded intermediate output to keep the cache tidy.
+                        lastFile?.let { prev -> runCatching { prev.delete() } }
+                        lastFile = cycle.file
+                        if (cycle.aiFellBack) fellBack = true
+                    }
+                    AudioEnhancer.EnhanceResult(lastFile!!, fellBack)
                 }
                 resultFile = result.file
                 resultSizeBytes = result.file.length()
@@ -255,6 +294,7 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
         isSaved = false
         progress = 0f
         aiFellBack = false
+        batchCurrentPass = 0
     }
 
     private fun mapError(e: Exception): String {
@@ -282,6 +322,11 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
         } ?: (null to 0L)
     } catch (_: Exception) {
         null to 0L
+    }
+
+    companion object {
+        /** Selectable batch sizes (number of chained enhancement passes). */
+        val BATCH_SIZES = listOf(1, 2, 3, 4, 5)
     }
 }
 
