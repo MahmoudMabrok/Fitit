@@ -86,7 +86,7 @@ class VideoSplitterViewModelTest {
         val vm = createViewModel()
         val uri = mockk<Uri>()
         vm.onVideoSelected(uri, 20_000L)  // 20s video
-        vm.setFixedSizeInput("30")        // 30s chunk
+        vm.updateFixedSizeInput("30")        // 30s chunk
         assertFalse(vm.isSplitEnabled)
     }
 
@@ -95,14 +95,14 @@ class VideoSplitterViewModelTest {
         val vm = createViewModel()
         val uri = mockk<Uri>()
         vm.onVideoSelected(uri, 30_000L)  // 30s video
-        vm.setFixedSizeInput("30")        // 30s chunk
+        vm.updateFixedSizeInput("30")        // 30s chunk
         assertTrue(vm.isSplitEnabled)
     }
 
     @Test
     fun `fixed size accepts fractional seconds`() {
         val vm = createViewModel()
-        vm.setFixedSizeInput("2.5")
+        vm.updateFixedSizeInput("2.5")
         assertEquals(2_500L, vm.parsedChunkSizeMs)
         assertFalse(vm.fixedSizeFieldError)
     }
@@ -110,9 +110,9 @@ class VideoSplitterViewModelTest {
     @Test
     fun `fixed size flags out-of-range and unparseable input`() {
         val vm = createViewModel()
-        vm.setFixedSizeInput("999")       // above 60s max
+        vm.updateFixedSizeInput("999")       // above 60s max
         assertTrue(vm.fixedSizeFieldError)
-        vm.setFixedSizeInput("abc")
+        vm.updateFixedSizeInput("abc")
         assertTrue(vm.fixedSizeFieldError)
         assertNull(vm.parsedChunkSizeMs)
     }
@@ -122,14 +122,14 @@ class VideoSplitterViewModelTest {
         val vm = createViewModel()
         val uri = mockk<Uri>()
         vm.onVideoSelected(uri, 10_000L)
-        vm.setFixedSizeInput("0.5")
+        vm.updateFixedSizeInput("0.5")
         assertTrue(vm.isSplitEnabled)
     }
 
     @Test
     fun `setFixedSizeInput resets chunks`() {
         val vm = createViewModel()
-        vm.setFixedSizeInput("45")
+        vm.updateFixedSizeInput("45")
         assertTrue(vm.chunks.isEmpty())
     }
 
@@ -138,8 +138,8 @@ class VideoSplitterViewModelTest {
         val vm = createViewModel()
         val uri = mockk<Uri>()
         vm.onVideoSelected(uri, 20_000L)  // 20s video
-        vm.setSplitMode(SplitMode.CUSTOM)
-        vm.setCustomTimesInput("5, 8, 12")
+        vm.updateSplitMode(SplitMode.CUSTOM)
+        vm.updateCustomTimesInput("5, 8, 12")
         assertTrue(vm.isSplitEnabled)
         assertEquals(listOf(5_000L, 8_000L, 12_000L), vm.parsedCustomTimesMs)
     }
@@ -149,8 +149,8 @@ class VideoSplitterViewModelTest {
         val vm = createViewModel()
         val uri = mockk<Uri>()
         vm.onVideoSelected(uri, 10_000L)  // 10s video
-        vm.setSplitMode(SplitMode.CUSTOM)
-        vm.setCustomTimesInput("5, 12")   // 12s is past the video end
+        vm.updateSplitMode(SplitMode.CUSTOM)
+        vm.updateCustomTimesInput("5, 12")   // 12s is past the video end
         assertTrue(vm.customTimesFieldError)
         assertFalse(vm.isSplitEnabled)
     }
@@ -158,15 +158,15 @@ class VideoSplitterViewModelTest {
     @Test
     fun `custom mode flags unparseable times`() {
         val vm = createViewModel()
-        vm.setSplitMode(SplitMode.CUSTOM)
-        vm.setCustomTimesInput("5, abc")
+        vm.updateSplitMode(SplitMode.CUSTOM)
+        vm.updateCustomTimesInput("5, abc")
         assertTrue(vm.customTimesFieldError)
     }
 
     @Test
     fun `setSplitMode resets chunks and switches mode`() {
         val vm = createViewModel()
-        vm.setSplitMode(SplitMode.CUSTOM)
+        vm.updateSplitMode(SplitMode.CUSTOM)
         assertEquals(SplitMode.CUSTOM, vm.splitMode)
         assertTrue(vm.chunks.isEmpty())
     }

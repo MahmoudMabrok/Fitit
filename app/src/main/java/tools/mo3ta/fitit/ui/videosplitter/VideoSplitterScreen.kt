@@ -144,7 +144,7 @@ fun VideoSplitterScreen(
             item {
                 SplitModeSelector(
                     mode = viewModel.splitMode,
-                    onModeChange = { viewModel.setSplitMode(it) },
+                    onModeChange = { viewModel.updateSplitMode(it) },
                     fixedLabel = stringResource(R.string.video_splitter_mode_fixed),
                     customLabel = stringResource(R.string.video_splitter_mode_custom)
                 )
@@ -154,7 +154,7 @@ fun VideoSplitterScreen(
                 when (viewModel.splitMode) {
                     SplitMode.FIXED -> SplitInputField(
                         value = viewModel.fixedSizeInput,
-                        onValueChange = { viewModel.setFixedSizeInput(it) },
+                        onValueChange = { viewModel.updateFixedSizeInput(it) },
                         label = stringResource(R.string.video_splitter_chunk_size_label),
                         placeholder = stringResource(R.string.video_splitter_chunk_size_placeholder),
                         suffix = stringResource(R.string.video_splitter_seconds_unit),
@@ -165,7 +165,7 @@ fun VideoSplitterScreen(
                     )
                     SplitMode.CUSTOM -> SplitInputField(
                         value = viewModel.customTimesInput,
-                        onValueChange = { viewModel.setCustomTimesInput(it) },
+                        onValueChange = { viewModel.updateCustomTimesInput(it) },
                         label = stringResource(R.string.video_splitter_custom_times_label),
                         placeholder = stringResource(R.string.video_splitter_custom_times_placeholder),
                         suffix = null,

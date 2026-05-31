@@ -117,7 +117,7 @@ class VideoSplitterViewModel(application: Application) : AndroidViewModel(applic
             }
         }
 
-    fun setSplitMode(mode: SplitMode) {
+    fun updateSplitMode(mode: SplitMode) {
         if (splitMode != mode) {
             splitMode = mode
             chunks = emptyList()
@@ -125,12 +125,12 @@ class VideoSplitterViewModel(application: Application) : AndroidViewModel(applic
         }
     }
 
-    fun setFixedSizeInput(input: String) {
+    fun updateFixedSizeInput(input: String) {
         fixedSizeInput = input
         chunks = emptyList()
     }
 
-    fun setCustomTimesInput(input: String) {
+    fun updateCustomTimesInput(input: String) {
         customTimesInput = input
         chunks = emptyList()
     }
