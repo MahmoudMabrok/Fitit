@@ -216,6 +216,9 @@
     <string name="audio_extractor_share">Share</string>
     <string name="audio_extractor_no_audio">This video has no audio track</string>
     <string name="audio_extractor_error_generic">Audio extraction failed, please try again</string>
+    <string name="audio_extractor_preview">Preview</string>
+    <string name="audio_extractor_play">Play</string>
+    <string name="audio_extractor_pause">Pause</string>
 
     <!-- Media Merger Screen -->
     <string name="tool_media_merger">Media Merger</string>

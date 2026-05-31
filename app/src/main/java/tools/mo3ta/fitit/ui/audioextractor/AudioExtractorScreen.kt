@@ -23,6 +23,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.VideoLibrary
@@ -185,6 +187,19 @@ fun AudioExtractorScreen(
                         shareLabel = stringResource(R.string.audio_extractor_share),
                         onSave = { viewModel.saveResult(context) },
                         onShare = { viewModel.shareResult(context) }
+                    )
+                }
+
+                item {
+                    AudioPreviewCard(
+                        isPlaying = viewModel.isPlaying,
+                        positionMs = viewModel.playbackPositionMs,
+                        durationMs = viewModel.playbackDurationMs,
+                        previewLabel = stringResource(R.string.audio_extractor_preview),
+                        playLabel = stringResource(R.string.audio_extractor_play),
+                        pauseLabel = stringResource(R.string.audio_extractor_pause),
+                        onTogglePlayback = { viewModel.togglePlayback() },
+                        onSeek = { viewModel.seekTo(it) }
                     )
                 }
             }
@@ -496,6 +511,76 @@ private fun ResultCard(
 }
 
 @Composable
+private fun AudioPreviewCard(
+    isPlaying: Boolean,
+    positionMs: Int,
+    durationMs: Int,
+    previewLabel: String,
+    playLabel: String,
+    pauseLabel: String,
+    onTogglePlayback: () -> Unit,
+    onSeek: (Int) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = previewLabel,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(TealAccent)
+                        .clickable { onTogglePlayback() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        contentDescription = if (isPlaying) pauseLabel else playLabel,
+                        tint = Color.White
+                    )
+                }
+
+                // Avoid an empty range before the player has prepared (duration == 0).
+                val safeDuration = durationMs.coerceAtLeast(1)
+                Slider(
+                    value = positionMs.coerceIn(0, safeDuration).toFloat(),
+                    onValueChange = { onSeek(it.toInt()) },
+                    valueRange = 0f..safeDuration.toFloat(),
+                    enabled = durationMs > 0,
+                    modifier = Modifier.weight(1f),
+                    colors = SliderDefaults.colors(
+                        thumbColor = TealAccent,
+                        activeTrackColor = TealAccent
+                    )
+                )
+
+                Text(
+                    text = formatDuration(positionMs),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun ErrorCard(message: String) {
     Row(
         modifier = Modifier
@@ -509,6 +594,13 @@ private fun ErrorCard(message: String) {
         Text("✕", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp)
         Text(message, color = MaterialTheme.colorScheme.onErrorContainer, fontSize = 14.sp)
     }
+}
+
+private fun formatDuration(ms: Int): String {
+    val totalSeconds = ms / 1000
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return String.format(Locale.US, "%d:%02d", minutes, seconds)
 }
 
 private fun formatBytes(bytes: Long): String {

@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -16,6 +17,9 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import tools.mo3ta.fitit.R
@@ -50,11 +54,23 @@ class AudioExtractorViewModel(application: Application) : AndroidViewModel(appli
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
+    // Preview playback state for the extracted audio.
+    var isPlaying by mutableStateOf(false)
+        private set
+    var playbackPositionMs by mutableStateOf(0)
+        private set
+    var playbackDurationMs by mutableStateOf(0)
+        private set
+
+    private var mediaPlayer: MediaPlayer? = null
+    private var positionJob: Job? = null
+
     val isExtractEnabled: Boolean
         get() = selectedVideoUri != null && !isProcessing
 
     fun onVideoSelected(uri: Uri) {
         selectedVideoUri = uri
+        releasePlayer()
         result = null
         isSaved = false
         errorMessage = null
@@ -72,6 +88,7 @@ class AudioExtractorViewModel(application: Application) : AndroidViewModel(appli
     fun setFormat(format: AudioFormat) {
         if (format == selectedFormat) return
         selectedFormat = format
+        releasePlayer()
         result = null
         isSaved = false
         errorMessage = null
@@ -86,6 +103,7 @@ class AudioExtractorViewModel(application: Application) : AndroidViewModel(appli
             isProcessing = true
             progress = 0f
             errorMessage = null
+            releasePlayer()
             result = null
             isSaved = false
 
@@ -165,6 +183,68 @@ class AudioExtractorViewModel(application: Application) : AndroidViewModel(appli
         }
         context.startActivity(Intent.createChooser(intent, null))
         try { AnalyticsManager.trackAudioShared(audio.format.name) } catch (_: Exception) {}
+    }
+
+    /** Toggles preview playback of the extracted audio, preparing the player lazily. */
+    fun togglePlayback() {
+        val audio = result ?: return
+        val player = mediaPlayer ?: try {
+            MediaPlayer().apply {
+                setDataSource(audio.file.absolutePath)
+                setOnCompletionListener {
+                    this@AudioExtractorViewModel.isPlaying = false
+                    this@AudioExtractorViewModel.playbackPositionMs = 0
+                    positionJob?.cancel()
+                    seekTo(0)
+                }
+                prepare()
+                this@AudioExtractorViewModel.playbackDurationMs = duration
+            }.also { mediaPlayer = it }
+        } catch (e: Exception) {
+            errorMessage = mapError(e)
+            return
+        }
+
+        if (player.isPlaying) {
+            player.pause()
+            isPlaying = false
+            positionJob?.cancel()
+        } else {
+            player.start()
+            isPlaying = true
+            startPositionUpdates()
+        }
+    }
+
+    fun seekTo(positionMs: Int) {
+        val player = mediaPlayer ?: return
+        player.seekTo(positionMs)
+        playbackPositionMs = positionMs
+    }
+
+    private fun startPositionUpdates() {
+        positionJob?.cancel()
+        positionJob = viewModelScope.launch {
+            while (isActive && mediaPlayer?.isPlaying == true) {
+                playbackPositionMs = mediaPlayer?.currentPosition ?: 0
+                delay(100)
+            }
+        }
+    }
+
+    private fun releasePlayer() {
+        positionJob?.cancel()
+        positionJob = null
+        mediaPlayer?.release()
+        mediaPlayer = null
+        isPlaying = false
+        playbackPositionMs = 0
+        playbackDurationMs = 0
+    }
+
+    override fun onCleared() {
+        releasePlayer()
+        super.onCleared()
     }
 
     private fun mapError(e: Exception): String {
