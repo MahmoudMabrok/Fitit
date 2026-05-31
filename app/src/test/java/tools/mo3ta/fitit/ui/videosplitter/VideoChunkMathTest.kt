@@ -90,6 +90,68 @@ class VideoChunkMathTest {
     }
 
     @Test
+    fun `calculateChunks supports fractional second steps`() {
+        val chunks = calculateChunks(10_000L, 2_500L)  // 2.5s step
+        assertEquals(4, chunks.size)
+        assertEquals(0L, chunks[0].startMs)
+        assertEquals(2_500L, chunks[1].startMs)
+    }
+
+    @Test
+    fun `parseSplitTimes parses comma separated seconds to millis`() {
+        assertEquals(listOf(5_000L, 8_000L, 12_000L), parseSplitTimes("5, 8, 12"))
+    }
+
+    @Test
+    fun `parseSplitTimes parses fractional seconds`() {
+        assertEquals(listOf(500L, 2_500L), parseSplitTimes("0.5, 2.5"))
+    }
+
+    @Test
+    fun `parseSplitTimes sorts and dedupes`() {
+        assertEquals(listOf(2_000L, 5_000L), parseSplitTimes("5, 2, 5"))
+    }
+
+    @Test
+    fun `parseSplitTimes returns null for blank or invalid input`() {
+        assertNull(parseSplitTimes(""))
+        assertNull(parseSplitTimes("5, abc"))
+        assertNull(parseSplitTimes("0, 5"))   // non-positive not allowed
+    }
+
+    @Test
+    fun `calculateChunksFromTimes makes N clips for N times`() {
+        // 5, 8, 12 on a 20s video -> 0-5, 5-8, 8-12 (remainder dropped)
+        val chunks = calculateChunksFromTimes(20_000L, listOf(5_000L, 8_000L, 12_000L))
+        assertEquals(3, chunks.size)
+        assertEquals(0L, chunks[0].startMs);   assertEquals(5_000L, chunks[0].endMs)
+        assertEquals(5_000L, chunks[1].startMs); assertEquals(8_000L, chunks[1].endMs)
+        assertEquals(8_000L, chunks[2].startMs); assertEquals(12_000L, chunks[2].endMs)
+        assertEquals(1, chunks[0].index)
+        assertEquals(3, chunks[2].index)
+    }
+
+    @Test
+    fun `calculateChunksFromTimes clamps times beyond duration`() {
+        val chunks = calculateChunksFromTimes(10_000L, listOf(5_000L, 12_000L))
+        assertEquals(2, chunks.size)
+        assertEquals(10_000L, chunks.last().endMs)
+    }
+
+    @Test
+    fun `calculateChunksFromTimes drops empty clips`() {
+        val chunks = calculateChunksFromTimes(10_000L, listOf(5_000L, 5_000L))
+        assertEquals(1, chunks.size)
+    }
+
+    @Test
+    fun `formatSeconds drops decimal for whole numbers`() {
+        assertEquals("30", formatSeconds(30_000L))
+        assertEquals("0.5", formatSeconds(500L))
+        assertEquals("2.5", formatSeconds(2_500L))
+    }
+
+    @Test
     fun `formatFileSize returns KB for bytes under 1MB`() {
         assertEquals("512.0 KB", formatFileSize(524_288L))
     }

@@ -21,12 +21,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.VideoLibrary
@@ -40,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -142,13 +142,39 @@ fun VideoSplitterScreen(
             }
 
             item {
-                ChunkSizeStepper(
-                    chunkSizeSeconds = viewModel.chunkSizeSeconds,
-                    onDecrement = { viewModel.setChunkSize(viewModel.chunkSizeSeconds - CHUNK_SIZE_STEP_S) },
-                    onIncrement = { viewModel.setChunkSize(viewModel.chunkSizeSeconds + CHUNK_SIZE_STEP_S) },
-                    label = stringResource(R.string.video_splitter_chunk_size_label),
-                    unit = stringResource(R.string.video_splitter_seconds_unit)
+                SplitModeSelector(
+                    mode = viewModel.splitMode,
+                    onModeChange = { viewModel.updateSplitMode(it) },
+                    fixedLabel = stringResource(R.string.video_splitter_mode_fixed),
+                    customLabel = stringResource(R.string.video_splitter_mode_custom)
                 )
+            }
+
+            item {
+                when (viewModel.splitMode) {
+                    SplitMode.FIXED -> SplitInputField(
+                        value = viewModel.fixedSizeInput,
+                        onValueChange = { viewModel.updateFixedSizeInput(it) },
+                        label = stringResource(R.string.video_splitter_chunk_size_label),
+                        placeholder = stringResource(R.string.video_splitter_chunk_size_placeholder),
+                        suffix = stringResource(R.string.video_splitter_seconds_unit),
+                        helper = stringResource(R.string.video_splitter_chunk_size_helper),
+                        isError = viewModel.fixedSizeFieldError,
+                        errorText = stringResource(R.string.video_splitter_chunk_size_error),
+                        keyboardType = KeyboardType.Decimal
+                    )
+                    SplitMode.CUSTOM -> SplitInputField(
+                        value = viewModel.customTimesInput,
+                        onValueChange = { viewModel.updateCustomTimesInput(it) },
+                        label = stringResource(R.string.video_splitter_custom_times_label),
+                        placeholder = stringResource(R.string.video_splitter_custom_times_placeholder),
+                        suffix = null,
+                        helper = stringResource(R.string.video_splitter_custom_times_helper),
+                        isError = viewModel.customTimesFieldError,
+                        errorText = stringResource(R.string.video_splitter_custom_times_error),
+                        keyboardType = KeyboardType.Text
+                    )
+                }
             }
 
             item {
@@ -198,6 +224,8 @@ fun VideoSplitterScreen(
                     )
                 }
 
+                val referenceDurationMs = viewModel.chunks
+                    .maxOfOrNull { it.endMs - it.startMs }?.coerceAtLeast(1L) ?: 1L
                 itemsIndexed(viewModel.chunks, key = { _, chunk -> chunk.index }) { _, chunk ->
                     VideoChunkCard(
                         chunk = chunk,
@@ -208,7 +236,7 @@ fun VideoSplitterScreen(
                         previewLabel = stringResource(R.string.video_splitter_preview),
                         chunkLabel = stringResource(R.string.video_splitter_chunk_label),
                         fileSizeBytes = chunk.fileSizeBytes,
-                        chunkDurationMs = viewModel.chunkSizeSeconds * 1000L + CHUNK_OVERLAP_MS,
+                        chunkDurationMs = referenceDurationMs,
                         onSave = { viewModel.saveChunk(context, chunk) },
                         onShare = { viewModel.shareChunk(context, chunk) },
                         onPreview = { viewModel.previewChunk(context, chunk) }
@@ -350,58 +378,89 @@ private fun ErrorCard(message: String) {
 }
 
 @Composable
-private fun ChunkSizeStepper(
-    chunkSizeSeconds: Int,
-    onDecrement: () -> Unit,
-    onIncrement: () -> Unit,
-    label: String,
-    unit: String
+private fun SplitModeSelector(
+    mode: SplitMode,
+    onModeChange: (SplitMode) -> Unit,
+    fixedLabel: String,
+    customLabel: String
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = label,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                IconButton(
-                    onClick = onDecrement,
-                    enabled = chunkSizeSeconds > CHUNK_SIZE_MIN_S
-                ) {
-                    Icon(Icons.Default.Remove, contentDescription = null,
-                        tint = if (chunkSizeSeconds > CHUNK_SIZE_MIN_S) RedAccent
-                               else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f))
-                }
-                Text(
-                    text = "$chunkSizeSeconds $unit",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = RedAccent
-                )
-                IconButton(
-                    onClick = onIncrement,
-                    enabled = chunkSizeSeconds < CHUNK_SIZE_MAX_S
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = null,
-                        tint = if (chunkSizeSeconds < CHUNK_SIZE_MAX_S) RedAccent
-                               else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f))
-                }
-            }
+        SplitModeTab(fixedLabel, mode == SplitMode.FIXED, Modifier.weight(1f)) {
+            onModeChange(SplitMode.FIXED)
         }
+        SplitModeTab(customLabel, mode == SplitMode.CUSTOM, Modifier.weight(1f)) {
+            onModeChange(SplitMode.CUSTOM)
+        }
+    }
+}
+
+@Composable
+private fun SplitModeTab(
+    label: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(if (selected) RedAccent else Color.Transparent)
+            .clickable { onClick() }
+            .padding(vertical = 10.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun SplitInputField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    placeholder: String,
+    suffix: String?,
+    helper: String,
+    isError: Boolean,
+    errorText: String,
+    keyboardType: KeyboardType
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text(label) },
+            placeholder = { Text(placeholder) },
+            suffix = suffix?.let { s -> { Text(s) } },
+            singleLine = true,
+            isError = isError,
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            shape = RoundedCornerShape(14.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = RedAccent,
+                focusedLabelColor = RedAccent,
+                cursorColor = RedAccent
+            )
+        )
+        Text(
+            text = if (isError) errorText else helper,
+            fontSize = 12.sp,
+            color = if (isError) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -555,8 +614,13 @@ private fun VideoChunkCard(
 }
 
 private fun Long.toTimeLabel(): String {
-    val totalSec = this / 1000L
-    val min = totalSec / 60
-    val sec = totalSec % 60
-    return "%d:%02d".format(min, sec)
+    val totalSec = this / 1000.0
+    val min = (totalSec / 60).toInt()
+    val sec = totalSec - min * 60
+    // Show a decimal only when the time has a fractional-second part (e.g. 0:02.5).
+    return if (sec == sec.toLong().toDouble()) {
+        "%d:%02d".format(min, sec.toInt())
+    } else {
+        "%d:%04.1f".format(min, sec)
+    }
 }
