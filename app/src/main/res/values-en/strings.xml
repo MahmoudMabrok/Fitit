@@ -214,4 +214,25 @@
     <string name="media_merger_share">Share</string>
     <string name="media_merger_no_player">No player app found</string>
     <string name="media_merger_error_generic">Merge failed. Make sure the clips share the same format.</string>
+
+    <!-- Audio Enhancer Screen -->
+    <string name="tool_audio_enhancer">Audio Enhancer</string>
+    <string name="tool_audio_enhancer_desc">Clean up audio quality and remove background noise</string>
+    <string name="audio_enhancer_title">Audio Enhancer</string>
+    <string name="audio_enhancer_feature_desc">Pick an audio file and clean it up on your device — reduce background noise, cut low rumble and even out the volume. Nothing is uploaded.</string>
+    <string name="audio_enhancer_pick">Pick an audio file</string>
+    <string name="audio_enhancer_pick_hint">It will be cleaned up and re-encoded</string>
+    <string name="audio_enhancer_tap_to_change">Tap to change file</string>
+    <string name="audio_enhancer_level_label">Enhancement level</string>
+    <string name="audio_enhancer_level_light">Light</string>
+    <string name="audio_enhancer_level_standard">Standard</string>
+    <string name="audio_enhancer_level_strong">Strong</string>
+    <string name="audio_enhancer_process">Enhance audio</string>
+    <string name="audio_enhancer_done">Enhanced audio ready</string>
+    <string name="audio_enhancer_save">Save</string>
+    <string name="audio_enhancer_saved">Saved</string>
+    <string name="audio_enhancer_share">Share</string>
+    <string name="audio_enhancer_error_no_audio">No audio track was found in this file</string>
+    <string name="audio_enhancer_error_too_long">This clip is too long. Try one under 10 minutes.</string>
+    <string name="audio_enhancer_error_generic">Could not enhance the audio, please try again</string>
 </resources>
