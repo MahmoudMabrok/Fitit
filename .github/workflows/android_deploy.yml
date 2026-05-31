@@ -201,14 +201,14 @@ jobs:
           # send the changes for review, so the edit commits even while an
           # App-content declaration (e.g. the foreground service permissions) is
           # still pending — land the build, complete the declaration, then submit.
-          # status: ${{ github.event.inputs.submit_for_review == 'true' && 'completed' || 'draft' }}
-          status: 'draft'
+          status: ${{ github.event.inputs.submit_for_review == 'true' && 'completed' || 'draft' }}
+          #status: 'draft'
           # changesNotSentForReview is coupled to the Play Console "Managed Publishing"
           # setting: it MUST be true when Managed Publishing is ON (Play can't auto-send
           # for review), and MUST be false/absent when it is OFF (else the API rejects it
           # with "changesNotSentForReview must not be set"). Drive it from the input.
           #  ${{ github.event.inputs.managed_publishing == 'true' && 'true' || 'false' }}
-          changesNotSentForReview: 'true'
+          changesNotSentForReview: 'false'
           mappingFile: app/build/outputs/mapping/release/mapping.txt
 
       # Step 2: only once the publish to Google Play has succeeded do we commit
