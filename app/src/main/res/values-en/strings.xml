@@ -169,6 +169,25 @@
     <string name="video_enhancer_no_player">No video player app found</string>
     <string name="video_enhancer_error_generic">Enhancement failed, please try again</string>
 
+    <!-- Audio Extractor Screen -->
+    <string name="tool_audio_extractor">Audio Extractor</string>
+    <string name="tool_audio_extractor_desc">Pull the sound out of a video as WAV or M4A</string>
+    <string name="audio_extractor_title">Audio Extractor</string>
+    <string name="audio_extractor_feature_desc">Pick a video and extract its audio track. Choose M4A for a small compressed file, or WAV for uncompressed quality.</string>
+    <string name="audio_extractor_pick_video">Pick a video from gallery</string>
+    <string name="audio_extractor_pick_hint">The audio will be separated from it</string>
+    <string name="audio_extractor_tap_to_change">Tap to change video</string>
+    <string name="audio_extractor_format_label">Output format</string>
+    <string name="audio_extractor_m4a_hint">Compressed · smaller size</string>
+    <string name="audio_extractor_wav_hint">Uncompressed · best quality</string>
+    <string name="audio_extractor_extract_button">Extract audio</string>
+    <string name="audio_extractor_ready">Audio ready</string>
+    <string name="audio_extractor_save">Save</string>
+    <string name="audio_extractor_saved">Saved</string>
+    <string name="audio_extractor_share">Share</string>
+    <string name="audio_extractor_no_audio">This video has no audio track</string>
+    <string name="audio_extractor_error_generic">Audio extraction failed, please try again</string>
+
     <!-- Media Merger Screen -->
     <string name="tool_media_merger">Media Merger</string>
     <string name="tool_media_merger_desc">Combine several clips of the same type into one file</string>

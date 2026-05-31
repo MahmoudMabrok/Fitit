@@ -169,6 +169,25 @@
     <string name="video_enhancer_no_player">لا يوجد تطبيق لتشغيل الفيديو</string>
     <string name="video_enhancer_error_generic">فشل تحسين الفيديو، حاول مرة أخرى</string>
 
+    <!-- Audio Extractor Screen -->
+    <string name="tool_audio_extractor">استخراج الصوت</string>
+    <string name="tool_audio_extractor_desc">افصل الصوت من الفيديو بصيغة WAV أو M4A</string>
+    <string name="audio_extractor_title">استخراج الصوت</string>
+    <string name="audio_extractor_feature_desc">اختر فيديو واستخرج المقطع الصوتي منه. اختر M4A لملف مضغوط صغير، أو WAV لجودة غير مضغوطة.</string>
+    <string name="audio_extractor_pick_video">اختر فيديو من المعرض</string>
+    <string name="audio_extractor_pick_hint">سيتم فصل الصوت منه</string>
+    <string name="audio_extractor_tap_to_change">اضغط لتغيير الفيديو</string>
+    <string name="audio_extractor_format_label">صيغة الإخراج</string>
+    <string name="audio_extractor_m4a_hint">مضغوط · حجم أصغر</string>
+    <string name="audio_extractor_wav_hint">غير مضغوط · أعلى جودة</string>
+    <string name="audio_extractor_extract_button">استخراج الصوت</string>
+    <string name="audio_extractor_ready">الصوت جاهز</string>
+    <string name="audio_extractor_save">حفظ</string>
+    <string name="audio_extractor_saved">تم الحفظ</string>
+    <string name="audio_extractor_share">مشاركة</string>
+    <string name="audio_extractor_no_audio">هذا الفيديو لا يحتوي على صوت</string>
+    <string name="audio_extractor_error_generic">فشل استخراج الصوت، حاول مرة أخرى</string>
+
     <!-- Media Merger Screen -->
     <string name="tool_media_merger">دمج الوسائط</string>
     <string name="tool_media_merger_desc">ادمج عدة مقاطع من نفس النوع في ملف واحد</string>
