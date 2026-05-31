@@ -31,11 +31,11 @@ on:
           - beta
           - production
         default: internal
-      changes_not_sent_for_review:
-        description: 'Do NOT send changes for review (use when a permission declaration / manual review is required in Play Console)'
+      submit_for_review:
+        description: 'Submit the release for review (status=completed). Uncheck to upload as a draft.'
         required: false
         type: boolean
-        default: false
+        default: true
 
 jobs:
   build:
@@ -156,36 +156,20 @@ jobs:
           name: release-aab
           path: app/build/outputs/bundle/release/*.aab
 
-      # Two upload steps below. The r0adkll action always forwards the
-      # changesNotSentForReview query parameter to the Play API, even when it
-      # is false, and the API rejects the parameter entirely for tracks/apps
-      # where changes are sent for review automatically ("The query parameter
-      # changesNotSentForReview must not be set"). So we only pass it when the
-      # user opts in, by using a separate step.
       - name: Upload to Google Play
         id: upload
-        if: ${{ github.event.inputs.upload_to_play == 'true' && github.event.inputs.build_type == 'aab' && github.event.inputs.changes_not_sent_for_review != 'true' }}
+        if: ${{ github.event.inputs.upload_to_play == 'true' && github.event.inputs.build_type == 'aab' }}
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: tools.mo3ta.fitit
           releaseFiles: app/build/outputs/bundle/release/*.aab
           track: ${{ github.event.inputs.track }}
-          status: completed
+          # completed = submitted for review; draft = uploaded but held in the
+          # Play Console (use when a manual permission declaration / review is
+          # required before the changes can be sent for review).
+          status: ${{ github.event.inputs.submit_for_review == 'true' && 'completed' || 'draft' }}
           mappingFile: app/build/outputs/mapping/release/mapping.txt
-
-      - name: Upload to Google Play (changes not sent for review)
-        id: upload_no_review
-        if: ${{ github.event.inputs.upload_to_play == 'true' && github.event.inputs.build_type == 'aab' && github.event.inputs.changes_not_sent_for_review == 'true' }}
-        uses: r0adkll/upload-google-play@v1
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-          packageName: tools.mo3ta.fitit
-          releaseFiles: app/build/outputs/bundle/release/*.aab
-          track: ${{ github.event.inputs.track }}
-          status: completed
-          mappingFile: app/build/outputs/mapping/release/mapping.txt
-          changesNotSentForReview: true
 
       # Step 2: only once the publish to Google Play has succeeded do we commit
       # the bumped versionCode (and any versionName change) back to the repo.
