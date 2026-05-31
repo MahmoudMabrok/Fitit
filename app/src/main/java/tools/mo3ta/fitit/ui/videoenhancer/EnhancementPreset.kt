@@ -69,6 +69,14 @@ const val MAX_OUTPUT_BITRATE = 40_000_000     // 40 Mbps ceiling to keep file si
 const val DEFAULT_FRAME_RATE = 30
 const val ENHANCER_MAX_DURATION_MS = 300_000L // 5 minutes, matches the splitter limit
 
+/**
+ * Default slice length for the chunked ML enhance pipeline ([MlChunkedVideoEnhancer]): the source is
+ * cut into 0.1s pieces, each enhanced independently, then merged back together. Exposed as a tunable
+ * constant so the slice size can be raised (fewer slices, less per-slice overhead) without touching
+ * the pipeline code.
+ */
+const val ML_CHUNK_MS = 100L
+
 /** Rounds [value] to the nearest even integer (H.264 encoders require even dimensions). */
 fun evenDimension(value: Int): Int {
     val rounded = value.coerceAtLeast(2)

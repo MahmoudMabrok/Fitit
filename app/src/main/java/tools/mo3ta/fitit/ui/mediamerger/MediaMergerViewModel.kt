@@ -284,11 +284,12 @@ private const val CLIP_GAP_US = 30_000L
  * using stream-copy (no re-encoding). Inputs must share the same codec/format for the muxer to
  * accept their samples; mismatched inputs surface as an exception.
  */
-private fun mergeMedia(
+internal fun mergeMedia(
     context: Context,
     uris: List<Uri>,
     mediaType: MediaType,
     output: File,
+    gapUs: Long = CLIP_GAP_US,
     onProgress: (Float) -> Unit
 ) {
     val isVideo = mediaType == MediaType.VIDEO
@@ -406,7 +407,7 @@ private fun mergeMedia(
                 }
 
                 // Push the timeline forward so the next clip starts after this one.
-                offsetUs += maxPtsUs + CLIP_GAP_US
+                offsetUs += maxPtsUs + gapUs
             } finally {
                 extractor.release()
             }

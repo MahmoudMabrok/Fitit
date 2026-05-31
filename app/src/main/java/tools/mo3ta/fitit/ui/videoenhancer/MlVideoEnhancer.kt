@@ -11,6 +11,7 @@ import android.media.MediaMuxer
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.channels.Channel
@@ -81,6 +82,12 @@ object MlVideoEnhancer {
      *
      * [speedMode] trades quality for throughput by lowering the inference input resolution and,
      * for [MlSpeedMode.FAST], by skipping frames and repeating each upscaled frame to fill the gap.
+     *
+     * [sharedModel] and [sharedEncodeDispatcher] let a caller (the chunked pipeline) load the TFLite
+     * model and pin the encode thread once and reuse them across many slices, instead of paying the
+     * model-load cost per call. When supplied, this function neither closes the model nor shuts the
+     * thread down — the caller owns their lifecycle. Both must be passed together: the interpreter is
+     * thread-affine, so it has to be created on, and only ever touched from, the shared thread.
      */
     @RequiresApi(Build.VERSION_CODES.P)
     suspend fun enhance(
@@ -89,6 +96,8 @@ object MlVideoEnhancer {
         output: File,
         level: EnhancementLevel,
         speedMode: MlSpeedMode = MlSpeedMode.BALANCED,
+        sharedModel: MlSuperResolution? = null,
+        sharedEncodeDispatcher: CoroutineDispatcher? = null,
         onProgress: (Float) -> Unit = {},
     ) = coroutineScope {
         val stride = speedMode.frameStride.coerceAtLeast(1)
@@ -142,10 +151,17 @@ object MlVideoEnhancer {
         }
 
         // Consumer stage: inference + encode pinned to a single thread (EGL/TFLite are thread-affine).
-        val encodeExecutor = Executors.newSingleThreadExecutor { r -> Thread(r, "ml-video-encode") }
+        // Reuse the caller's thread when one is supplied (chunked pipeline); otherwise own a private one.
+        val ownExecutor = if (sharedEncodeDispatcher == null) {
+            Executors.newSingleThreadExecutor { r -> Thread(r, "ml-video-encode") }
+        } else {
+            null
+        }
+        val encodeDispatcher = sharedEncodeDispatcher ?: ownExecutor!!.asCoroutineDispatcher()
         try {
-            withContext(encodeExecutor.asCoroutineDispatcher()) {
-                val model = MlSuperResolution.create(context) ?: error("ML super-resolution model unavailable")
+            withContext(encodeDispatcher) {
+                val model = sharedModel ?: MlSuperResolution.create(context)
+                    ?: error("ML super-resolution model unavailable")
                 var encoder: MediaCodec? = null
                 var inputSurface: InputSurface? = null
                 var muxer: MediaMuxer? = null
@@ -247,14 +263,15 @@ object MlVideoEnhancer {
                     runCatching { muxer?.stop() }
                     runCatching { muxer?.release() }
                     runCatching { inputSurface?.release() }
-                    runCatching { model.close() }
+                    // A shared model is owned by the caller and reused for later slices; leave it open.
+                    if (sharedModel == null) runCatching { model.close() }
                 }
             }
         } finally {
             // Stop the producer (it may be blocked on send) and drain any staged bitmaps it leaves.
             producer.cancel()
             for (leftover in inputs) runCatching { leftover.recycle() }
-            encodeExecutor.shutdown()
+            ownExecutor?.shutdown()
         }
         onProgress(1f)
     }

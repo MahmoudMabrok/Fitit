@@ -50,7 +50,9 @@ object VideoEnhancer {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
             MlVideoEnhancer.isAvailable(context)
         ) {
-            MlVideoEnhancer.enhance(context, uri, output, level, speedMode, onProgress)
+            // Slice → super-resolve each slice → stitch back together, reusing the app's split
+            // (VideoSplitter.extractSegment) and merge (MediaMerger.mergeMedia) logic.
+            MlChunkedVideoEnhancer.enhance(context, uri, output, level, speedMode, onProgress = onProgress)
             return EnhanceEngine.ML
         }
 
