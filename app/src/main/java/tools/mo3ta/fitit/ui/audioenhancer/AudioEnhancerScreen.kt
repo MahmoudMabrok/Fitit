@@ -21,6 +21,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
@@ -186,10 +188,14 @@ fun AudioEnhancerScreen(
                     ResultCard(
                         fileSizeBytes = viewModel.resultSizeBytes,
                         isSaved = viewModel.isSaved,
+                        isPlaying = viewModel.isPreviewPlaying,
                         readyLabel = stringResource(R.string.audio_enhancer_done),
+                        playLabel = stringResource(R.string.audio_enhancer_play),
+                        pauseLabel = stringResource(R.string.audio_enhancer_pause),
                         saveLabel = stringResource(R.string.audio_enhancer_save),
                         savedLabel = stringResource(R.string.audio_enhancer_saved),
                         shareLabel = stringResource(R.string.audio_enhancer_share),
+                        onPreview = { viewModel.togglePreview() },
                         onSave = { viewModel.saveResult(context) },
                         onShare = { viewModel.shareResult(context) }
                     )
@@ -374,10 +380,14 @@ private fun EnhanceButton(onClick: () -> Unit, enabled: Boolean, label: String) 
 private fun ResultCard(
     fileSizeBytes: Long,
     isSaved: Boolean,
+    isPlaying: Boolean,
     readyLabel: String,
+    playLabel: String,
+    pauseLabel: String,
     saveLabel: String,
     savedLabel: String,
     shareLabel: String,
+    onPreview: () -> Unit,
     onSave: () -> Unit,
     onShare: () -> Unit
 ) {
@@ -418,6 +428,34 @@ private fun ResultCard(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Accent.copy(alpha = 0.10f))
+                    .clickable { onPreview() }
+                    .padding(vertical = 12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        contentDescription = null,
+                        tint = Accent,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        if (isPlaying) pauseLabel else playLabel,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp,
+                        color = Accent
+                    )
                 }
             }
 

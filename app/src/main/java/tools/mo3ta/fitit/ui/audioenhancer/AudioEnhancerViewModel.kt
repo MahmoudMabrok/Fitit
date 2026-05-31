@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -37,8 +38,12 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
         private set
     var aiFellBack by mutableStateOf(false)
         private set
+    var isPreviewPlaying by mutableStateOf(false)
+        private set
     var isProcessing by mutableStateOf(false)
         private set
+
+    private var previewPlayer: MediaPlayer? = null
     var progress by mutableStateOf(0f)
         private set
     var resultFile by mutableStateOf<File?>(null)
@@ -177,7 +182,50 @@ class AudioEnhancerViewModel(application: Application) : AndroidViewModel(applic
         try { AnalyticsManager.trackAudioEnhanceShared() } catch (_: Exception) {}
     }
 
+    /** Toggle in-app playback of the enhanced result, so users can hear it before saving. */
+    fun togglePreview() {
+        val file = resultFile ?: return
+        val player = previewPlayer
+        if (player != null && player.isPlaying) {
+            player.pause()
+            isPreviewPlaying = false
+            return
+        }
+        if (player != null) {
+            player.start()
+            isPreviewPlaying = true
+            return
+        }
+        try {
+            previewPlayer = MediaPlayer().apply {
+                setDataSource(file.absolutePath)
+                setOnCompletionListener {
+                    isPreviewPlaying = false
+                    it.seekTo(0)
+                }
+                prepare()
+                start()
+            }
+            isPreviewPlaying = true
+            try { AnalyticsManager.trackAudioEnhancePreviewed() } catch (_: Exception) {}
+        } catch (_: Exception) {
+            releasePreview()
+        }
+    }
+
+    private fun releasePreview() {
+        previewPlayer?.let { runCatching { it.release() } }
+        previewPlayer = null
+        isPreviewPlaying = false
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        releasePreview()
+    }
+
     private fun resetResult() {
+        releasePreview()
         resultFile = null
         resultSizeBytes = 0L
         isSaved = false

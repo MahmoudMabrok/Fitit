@@ -88,6 +88,8 @@ object AnalyticsManager {
 
     fun trackAudioEnhanceShared() = log("zaki_audio_enhance_shared")
 
+    fun trackAudioEnhancePreviewed() = log("zaki_audio_enhance_previewed")
+
     private fun log(name: String, vararg params: Pair<String, String>) {
         val bundle = Bundle()
         params.forEach { (key, value) -> bundle.putString(key, value) }

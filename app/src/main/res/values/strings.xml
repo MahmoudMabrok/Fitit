@@ -239,4 +239,6 @@
     <string name="audio_enhancer_ai_desc">أزل ضوضاء الخلفية بنموذج ذكاء اصطناعي على جهازك (يستخدم معالج الرسومات عند توفّره). الأفضل للكلام؛ أبطأ من التنظيف القياسي.</string>
     <string name="audio_enhancer_ai_unavailable">لا يوجد نموذج ذكاء اصطناعي مضمّن — تُستخدم إزالة الضوضاء القياسية.</string>
     <string name="audio_enhancer_ai_fallback">نموذج الذكاء الاصطناعي غير متوفر؛ تم التنظيف بإزالة الضوضاء القياسية.</string>
+    <string name="audio_enhancer_play">تشغيل</string>
+    <string name="audio_enhancer_pause">إيقاف مؤقت</string>
 </resources>
