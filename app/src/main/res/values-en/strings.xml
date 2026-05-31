@@ -157,7 +157,6 @@
     <string name="video_enhancer_speed_fast">Fast</string>
     <string name="video_enhancer_speed_balanced">Balanced</string>
     <string name="video_enhancer_speed_quality">Quality</string>
-    <string name="video_enhancer_speed_cap_label">Resolution cap</string>
     <string name="video_enhancer_enhance_button">Enhance Video</string>
     <string name="video_enhancer_processing">Processing… %d%%</string>
     <string name="video_enhancer_result_title">Enhanced video ready</string>
@@ -169,4 +168,43 @@
     <string name="video_enhancer_share">Share</string>
     <string name="video_enhancer_no_player">No video player app found</string>
     <string name="video_enhancer_error_generic">Enhancement failed, please try again</string>
+
+    <!-- Audio Extractor Screen -->
+    <string name="tool_audio_extractor">Audio Extractor</string>
+    <string name="tool_audio_extractor_desc">Pull the sound out of a video as WAV or M4A</string>
+    <string name="audio_extractor_title">Audio Extractor</string>
+    <string name="audio_extractor_feature_desc">Pick a video and extract its audio track. Choose M4A for a small compressed file, or WAV for uncompressed quality.</string>
+    <string name="audio_extractor_pick_video">Pick a video from gallery</string>
+    <string name="audio_extractor_pick_hint">The audio will be separated from it</string>
+    <string name="audio_extractor_tap_to_change">Tap to change video</string>
+    <string name="audio_extractor_format_label">Output format</string>
+    <string name="audio_extractor_m4a_hint">Compressed · smaller size</string>
+    <string name="audio_extractor_wav_hint">Uncompressed · best quality</string>
+    <string name="audio_extractor_extract_button">Extract audio</string>
+    <string name="audio_extractor_ready">Audio ready</string>
+    <string name="audio_extractor_save">Save</string>
+    <string name="audio_extractor_saved">Saved</string>
+    <string name="audio_extractor_share">Share</string>
+    <string name="audio_extractor_no_audio">This video has no audio track</string>
+    <string name="audio_extractor_error_generic">Audio extraction failed, please try again</string>
+
+    <!-- Media Merger Screen -->
+    <string name="tool_media_merger">Media Merger</string>
+    <string name="tool_media_merger_desc">Combine several clips of the same type into one file</string>
+    <string name="media_merger_title">Media Merger</string>
+    <string name="media_merger_feature_desc">Pick a type, add two or more clips of the same type, reorder them, then merge into a single file. Works best when clips share the same format. Everything runs on your device.</string>
+    <string name="media_merger_type_video">Video</string>
+    <string name="media_merger_type_audio">Audio</string>
+    <string name="media_merger_add">Add media</string>
+    <string name="media_merger_add_hint">Pick up to %d clips of the selected type</string>
+    <string name="media_merger_order_hint">Drag order — clips merge top to bottom</string>
+    <string name="media_merger_clear">Clear all</string>
+    <string name="media_merger_merge_button">Merge</string>
+    <string name="media_merger_result_title">Merged file ready</string>
+    <string name="media_merger_preview">Preview</string>
+    <string name="media_merger_save">Save</string>
+    <string name="media_merger_saved">Saved</string>
+    <string name="media_merger_share">Share</string>
+    <string name="media_merger_no_player">No player app found</string>
+    <string name="media_merger_error_generic">Merge failed. Make sure the clips share the same format.</string>
 </resources>
