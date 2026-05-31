@@ -111,6 +111,26 @@ fun encoderBitrate(width: Int, height: Int, frameRate: Int, bitsPerPixel: Double
     return raw.toLong().coerceIn(MIN_OUTPUT_BITRATE.toLong(), MAX_OUTPUT_BITRATE.toLong()).toInt()
 }
 
+/**
+ * Computes the muxer orientation hint that makes a re-encoded frame display the same way the source
+ * video did.
+ *
+ * The ML engine pulls frames with `MediaMetadataRetriever.getFrameAtIndex`, whose rotation handling
+ * is undocumented and device-dependent. For a 90°/270° source the coded frame is landscape while the
+ * display is portrait (or vice versa). When the extracted frame still matches the source's coded
+ * orientation, the retriever did *not* apply the rotation, so it is reproduced with a hint; when the
+ * frame's orientation is already swapped, the retriever delivered an upright frame and no hint is
+ * needed. 0°/180° sources are left unhinted, since their coded and display orientations share the
+ * same dimensions. When the coded dimensions are unknown the [rotation] is reproduced verbatim.
+ */
+fun orientationHint(rotation: Int, codedWidth: Int, codedHeight: Int, frameWidth: Int, frameHeight: Int): Int {
+    if (rotation != 90 && rotation != 270) return 0
+    if (codedWidth <= 0 || codedHeight <= 0) return rotation
+    val codedLandscape = codedWidth >= codedHeight
+    val frameLandscape = frameWidth >= frameHeight
+    return if (frameLandscape == codedLandscape) rotation else 0
+}
+
 fun formatFileSize(bytes: Long): String {
     return if (bytes < 1_048_576L) {
         String.format(java.util.Locale.US, "%.1f KB", bytes / 1024.0)

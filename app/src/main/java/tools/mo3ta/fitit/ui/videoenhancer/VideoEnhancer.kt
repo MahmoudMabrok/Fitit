@@ -76,6 +76,12 @@ object VideoEnhancer {
             // Driving the encoder + renderer from the coded dimensions — and reproducing the
             // orientation purely through the muxer's orientation hint — keeps the output aspect ratio
             // identical to the source instead of squashing the frame into a swapped resolution.
+            //
+            // This only holds if the decoder hands us frames in coded orientation. Many decoders
+            // honour KEY_ROTATION and auto-rotate frames onto the surface, which would both squash
+            // the frame into the coded-size viewport *and* get double-rotated by the muxer hint —
+            // losing the source orientation. Strip the key below so the decoder never rotates and the
+            // muxer hint stays the single source of truth.
             val codedWidth = inputFormat.intOrDefault(MediaFormat.KEY_WIDTH, srcWidth)
             val codedHeight = inputFormat.intOrDefault(MediaFormat.KEY_HEIGHT, srcHeight)
             val spec = computeOutputSpec(codedWidth, codedHeight, frameRate, level)
@@ -107,6 +113,9 @@ object VideoEnhancer {
             outputSurface = OutputSurface(renderer)
 
             val decoderMime = inputFormat.getString(MediaFormat.KEY_MIME) ?: error("Video track has no MIME type")
+            // Disable decoder-side rotation so frames arrive in coded orientation on every device;
+            // the source rotation is reproduced solely through muxer.setOrientationHint below.
+            inputFormat.setInteger(MediaFormat.KEY_ROTATION, 0)
             decoder = MediaCodec.createDecoderByType(decoderMime).apply {
                 configure(inputFormat, outputSurface.surface, null, 0)
                 start()
