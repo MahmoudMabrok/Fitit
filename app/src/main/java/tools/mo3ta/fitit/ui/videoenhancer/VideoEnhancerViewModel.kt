@@ -1,13 +1,9 @@
 package tools.mo3ta.fitit.ui.videoenhancer
 
 import android.app.Application
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
-import android.os.Environment
-import android.provider.MediaStore
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -20,7 +16,6 @@ import kotlinx.coroutines.withContext
 import tools.mo3ta.fitit.R
 import tools.mo3ta.fitit.analytics.AnalyticsManager
 import java.io.File
-import java.io.IOException
 
 class VideoEnhancerViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -52,6 +47,39 @@ class VideoEnhancerViewModel(application: Application) : AndroidViewModel(applic
         private set
     var errorMessage by mutableStateOf<String?>(null)
         private set
+
+    init {
+        // The actual work runs in VideoEnhancerService so it survives the user leaving the screen or
+        // backgrounding the app; this ViewModel just mirrors the shared state into the UI. A freshly
+        // created ViewModel (e.g. after navigating back) immediately reflects an in-flight run.
+        viewModelScope.launch {
+            VideoEnhanceManager.state.collect { state ->
+                when (state) {
+                    is EnhanceState.Idle -> isProcessing = false
+                    is EnhanceState.Running -> {
+                        isProcessing = true
+                        progress = state.progress
+                        errorMessage = null
+                        enhancedFile = null
+                        isSaved = false
+                    }
+                    is EnhanceState.Success -> {
+                        isProcessing = false
+                        progress = 1f
+                        enhancedFile = state.outputFile
+                        enhancedFileSizeBytes = state.outputSizeBytes
+                        isSaved = state.savedToGallery
+                        aiFellBackToGl = state.fellBackToGl
+                    }
+                    is EnhanceState.Failed -> {
+                        isProcessing = false
+                        errorMessage = state.message
+                            ?: getApplication<Application>().getString(R.string.video_enhancer_error_generic)
+                    }
+                }
+            }
+        }
+    }
 
     val isDurationValid: Boolean
         get() = videoDurationMs in 1..ENHANCER_MAX_DURATION_MS
@@ -101,69 +129,29 @@ class VideoEnhancerViewModel(application: Application) : AndroidViewModel(applic
 
     fun enhance() {
         val uri = selectedVideoUri ?: return
+        if (VideoEnhanceManager.isRunning) return
         val context = getApplication<Application>()
 
         val requestedEngine = if (useAiUpscale) EnhanceEngine.ML else EnhanceEngine.GL
         // Only Fast mode exposes a user-chosen resolution cap; other modes use their own.
         val capOverride = if (speedMode == MlSpeedMode.FAST) fastCapPx else null
 
-        viewModelScope.launch {
-            isProcessing = true
-            progress = 0f
-            errorMessage = null
-            aiFellBackToGl = false
-            resetResult()
+        errorMessage = null
+        aiFellBackToGl = false
+        resetResult()
 
-            try { AnalyticsManager.trackVideoEnhanceStarted(videoDurationMs, level.name) } catch (_: Exception) {}
+        try { AnalyticsManager.trackVideoEnhanceStarted(videoDurationMs, level.name) } catch (_: Exception) {}
 
-            try {
-                val outputDir = File(context.cacheDir, "enhanced_videos").also { it.mkdirs() }
-                val outputFile = File(outputDir, "enhanced_${System.currentTimeMillis()}.mp4")
-                val usedEngine = withContext(Dispatchers.IO) {
-                    VideoEnhancer.enhance(context, uri, outputFile, level, requestedEngine, speedMode, capOverride) { p ->
-                        viewModelScope.launch(Dispatchers.Main) { progress = p }
-                    }
-                }
-                aiFellBackToGl = requestedEngine == EnhanceEngine.ML && usedEngine == EnhanceEngine.GL
-                enhancedFile = outputFile
-                enhancedFileSizeBytes = outputFile.length()
-                try { AnalyticsManager.trackVideoEnhanceCompleted(level.name) } catch (_: Exception) {}
-            } catch (e: Exception) {
-                errorMessage = e.message ?: context.getString(R.string.video_enhancer_error_generic)
-            } finally {
-                isProcessing = false
-            }
-        }
+        // Hand the heavy work to a foreground service so it keeps running if the user leaves the app;
+        // progress and the result come back through VideoEnhanceManager, which this ViewModel observes.
+        VideoEnhancerService.start(context, uri, level, requestedEngine, speedMode, capOverride)
     }
 
     fun saveEnhanced(context: Context) {
         val file = enhancedFile ?: return
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    val values = ContentValues().apply {
-                        put(MediaStore.Video.Media.DISPLAY_NAME, "zaki_enhanced_${file.nameWithoutExtension}.mp4")
-                        put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
-                        put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/Zaki")
-                    }
-                    val insertUri = context.contentResolver.insert(
-                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values,
-                    ) ?: throw IOException("Failed to create MediaStore entry")
-                    context.contentResolver.openOutputStream(insertUri)?.use { os ->
-                        file.inputStream().use { it.copyTo(os) }
-                    } ?: throw IOException("Failed to open output stream")
-                } else {
-                    val dir = File(
-                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES),
-                        "Zaki",
-                    ).also { it.mkdirs() }
-                    val dest = File(dir, "zaki_enhanced_${file.name}")
-                    file.copyTo(dest, overwrite = true)
-                    @Suppress("DEPRECATION")
-                    android.media.MediaScannerConnection.scanFile(
-                        context, arrayOf(dest.absolutePath), null, null,
-                    )
-                }
+                saveVideoToGallery(context, file)
                 withContext(Dispatchers.Main) {
                     isSaved = true
                     try { AnalyticsManager.trackVideoEnhanceSaved() } catch (_: Exception) {}
@@ -209,6 +197,8 @@ class VideoEnhancerViewModel(application: Application) : AndroidViewModel(applic
         enhancedFileSizeBytes = 0L
         isSaved = false
         progress = 0f
+        // Drop any finished/failed result from a previous run (no-op while one is in progress).
+        VideoEnhanceManager.reset()
     }
 
     private fun readFileSize(uri: Uri): Long = try {
