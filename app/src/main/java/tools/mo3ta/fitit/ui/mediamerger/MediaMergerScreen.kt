@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import tools.mo3ta.fitit.R
 import tools.mo3ta.fitit.analytics.AnalyticsManager
+import tools.mo3ta.fitit.ui.common.KeepScreenOn
 import tools.mo3ta.fitit.ui.videosplitter.formatFileSize
 
 private val Teal = Color(0xFF00B5AD)
@@ -64,6 +65,9 @@ fun MediaMergerScreen(
     LaunchedEffect(Unit) {
         AnalyticsManager.trackScreenView("media_merger")
     }
+
+    // Keep the screen awake while processing; released automatically when it ends.
+    KeepScreenOn(viewModel.isProcessing)
 
     val videoPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(MEDIA_MERGER_MAX_ITEMS)

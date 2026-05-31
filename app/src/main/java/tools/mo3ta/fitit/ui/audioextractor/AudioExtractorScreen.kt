@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import tools.mo3ta.fitit.R
 import tools.mo3ta.fitit.analytics.AnalyticsManager
+import tools.mo3ta.fitit.ui.common.KeepScreenOn
 import java.util.Locale
 
 private val TealAccent = Color(0xFFEC407A)
@@ -58,6 +59,9 @@ fun AudioExtractorScreen(
     LaunchedEffect(Unit) {
         AnalyticsManager.trackScreenView("audio_extractor")
     }
+
+    // Keep the screen awake while processing; released automatically when it ends.
+    KeepScreenOn(viewModel.isProcessing)
 
     val videoPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()

@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import tools.mo3ta.fitit.R
 import tools.mo3ta.fitit.analytics.AnalyticsManager
+import tools.mo3ta.fitit.ui.common.KeepScreenOn
 import java.util.Locale
 
 private val Accent = Color(0xFF5E5CE6)
@@ -55,6 +56,9 @@ fun AudioEnhancerScreen(
     LaunchedEffect(Unit) {
         AnalyticsManager.trackScreenView("audio_enhancer")
     }
+
+    // Keep the screen awake while processing; released automatically when it ends.
+    KeepScreenOn(viewModel.isProcessing)
 
     val audioPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
