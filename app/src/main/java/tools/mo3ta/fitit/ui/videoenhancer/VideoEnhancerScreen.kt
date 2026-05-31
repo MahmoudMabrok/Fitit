@@ -147,6 +147,17 @@ fun VideoEnhancerScreen(
                 )
             }
 
+            if (viewModel.useAiUpscale && viewModel.isAiEngineAvailable) {
+                item {
+                    SpeedModeSelector(
+                        selected = viewModel.speedMode,
+                        enabled = !viewModel.isProcessing,
+                        label = stringResource(R.string.video_enhancer_speed_label),
+                        onSelect = viewModel::changeSpeedMode,
+                    )
+                }
+            }
+
             item {
                 EnhanceButton(
                     onClick = { viewModel.enhance() },
@@ -347,6 +358,62 @@ private fun LevelSelector(
                     ) {
                         Text(
                             text = "${stringResource(labelRes)}\n${lvl.targetShortSidePx}p",
+                            fontSize = 13.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isSelected) Accent else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SpeedModeSelector(
+    selected: MlSpeedMode,
+    enabled: Boolean,
+    label: String,
+    onSelect: (MlSpeedMode) -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                text = label,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                MlSpeedMode.entries.forEach { mode ->
+                    val isSelected = mode == selected
+                    val labelRes = when (mode) {
+                        MlSpeedMode.FAST -> R.string.video_enhancer_speed_fast
+                        MlSpeedMode.BALANCED -> R.string.video_enhancer_speed_balanced
+                        MlSpeedMode.QUALITY -> R.string.video_enhancer_speed_quality
+                    }
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(
+                                if (isSelected) Accent.copy(alpha = 0.15f)
+                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
+                            )
+                            .clickable(enabled = enabled) { onSelect(mode) }
+                            .padding(vertical = 12.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = stringResource(labelRes),
                             fontSize = 13.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                             color = if (isSelected) Accent else MaterialTheme.colorScheme.onSurfaceVariant,

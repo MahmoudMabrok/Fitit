@@ -44,6 +44,26 @@ data class OutputSpec(
  */
 enum class EnhanceEngine { GL, ML }
 
+/**
+ * Tunes the speed/quality trade-off of the [EnhanceEngine.ML] super-resolution engine.
+ *
+ * The model runs once per tile and the tile count grows roughly with the *square* of the input
+ * resolution, so [inputShortSideCap] is the dominant speed lever: each frame is downscaled so its
+ * short side is at most this many pixels before super-resolution (the model then upscales 4×).
+ * [frameStride] processes only every Nth frame and repeats each upscaled frame to fill the gap,
+ * trading temporal smoothness for a near-linear speed-up. Pure data so it can be unit-tested on the
+ * JVM without an Android device.
+ *
+ *  - [FAST] lowest input resolution and skips every other frame — best for previews / long clips.
+ *  - [BALANCED] the default; matches the engine's original full-frame behaviour.
+ *  - [QUALITY] highest input resolution, every frame — slowest, sharpest result.
+ */
+enum class MlSpeedMode(val inputShortSideCap: Int, val frameStride: Int) {
+    FAST(inputShortSideCap = 160, frameStride = 2),
+    BALANCED(inputShortSideCap = 270, frameStride = 1),
+    QUALITY(inputShortSideCap = 360, frameStride = 1),
+}
+
 const val MIN_OUTPUT_BITRATE = 1_000_000      // 1 Mbps floor so low-res clips still look clean
 const val MAX_OUTPUT_BITRATE = 40_000_000     // 40 Mbps ceiling to keep file sizes sane
 const val DEFAULT_FRAME_RATE = 30

@@ -34,6 +34,8 @@ class VideoEnhancerViewModel(application: Application) : AndroidViewModel(applic
         private set
     var useAiUpscale by mutableStateOf(false)
         private set
+    var speedMode by mutableStateOf(MlSpeedMode.BALANCED)
+        private set
     var aiFellBackToGl by mutableStateOf(false)
         private set
     var isProcessing by mutableStateOf(false)
@@ -71,6 +73,12 @@ class VideoEnhancerViewModel(application: Application) : AndroidViewModel(applic
         resetResult()
     }
 
+    fun changeSpeedMode(mode: MlSpeedMode) {
+        if (isProcessing) return
+        speedMode = mode
+        resetResult()
+    }
+
     fun onVideoSelected(uri: Uri, durationMs: Long) {
         selectedVideoUri = uri
         videoDurationMs = durationMs
@@ -102,7 +110,7 @@ class VideoEnhancerViewModel(application: Application) : AndroidViewModel(applic
                 val outputDir = File(context.cacheDir, "enhanced_videos").also { it.mkdirs() }
                 val outputFile = File(outputDir, "enhanced_${System.currentTimeMillis()}.mp4")
                 val usedEngine = withContext(Dispatchers.IO) {
-                    VideoEnhancer.enhance(context, uri, outputFile, level, requestedEngine) { p ->
+                    VideoEnhancer.enhance(context, uri, outputFile, level, requestedEngine, speedMode) { p ->
                         viewModelScope.launch(Dispatchers.Main) { progress = p }
                     }
                 }

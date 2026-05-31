@@ -88,4 +88,20 @@ class EnhancementPresetTest {
         val spec = computeOutputSpec(1920, 1080, 30, EnhancementLevel.MAX)
         assertEquals(encoderBitrate(1920, 1080, 30, EnhancementLevel.MAX.bitsPerPixel), spec.bitrate)
     }
+
+    @Test
+    fun `ml speed modes trade resolution for speed in order`() {
+        // Higher quality must never use a lower input cap; FAST must also skip frames.
+        assertTrue(MlSpeedMode.FAST.inputShortSideCap < MlSpeedMode.BALANCED.inputShortSideCap)
+        assertTrue(MlSpeedMode.BALANCED.inputShortSideCap < MlSpeedMode.QUALITY.inputShortSideCap)
+        assertTrue(MlSpeedMode.FAST.frameStride > 1)
+        assertEquals(1, MlSpeedMode.BALANCED.frameStride)
+        assertEquals(1, MlSpeedMode.QUALITY.frameStride)
+    }
+
+    @Test
+    fun `balanced mode preserves the original input cap`() {
+        // BALANCED is the default and must match the engine's previous fixed 270px behaviour.
+        assertEquals(270, MlSpeedMode.BALANCED.inputShortSideCap)
+    }
 }
