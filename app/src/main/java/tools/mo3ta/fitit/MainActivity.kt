@@ -1,5 +1,6 @@
 package tools.mo3ta.fitit
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -29,8 +30,13 @@ import tools.mo3ta.fitit.ui.theme.FititTheme
 
 class MainActivity : ComponentActivity() {
 
+    // Holds a route a notification asked us to open; consumed once the nav graph is ready.
+    private val pendingDestination = mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        pendingDestination.value = intent?.getStringExtra(EXTRA_DESTINATION)
 
         enableEdgeToEdge()
         AnalyticsManager.trackAppOpen()
@@ -39,11 +45,32 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        // App was already running: pick up the notification's requested destination.
+        pendingDestination.value = intent.getStringExtra(EXTRA_DESTINATION)
+    }
+
     @Composable
     fun FitItApp() {
         val navController = rememberNavController()
         val settingsViewModel: SettingsViewModel = viewModel()
         val themeMode by settingsViewModel.themeMode.collectAsState()
+
+        // Deep link from a notification: jump to the requested screen once, with Home underneath so
+        // Back lands somewhere sensible. Runs after the NavHost has composed its graph.
+        val destination by pendingDestination
+        LaunchedEffect(destination) {
+            if (destination == DEST_VIDEO_ENHANCER) {
+                navController.navigate("home") {
+                    popUpTo("onboarding") { inclusive = true }
+                    launchSingleTop = true
+                }
+                navController.navigate("video_enhancer") { launchSingleTop = true }
+                pendingDestination.value = null
+            }
+        }
 
         // Notification permission is requested in HomeScreen after onboarding
 
@@ -110,5 +137,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    companion object {
+        /** Intent extra naming a screen to deep-link to (e.g. from a notification). */
+        const val EXTRA_DESTINATION = "destination"
+        const val DEST_VIDEO_ENHANCER = "video_enhancer"
     }
 }

@@ -15,6 +15,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -48,6 +49,11 @@ class VideoEnhancerService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_CANCEL) {
+            cancelCurrent()
+            return START_NOT_STICKY
+        }
+
         val uriString = intent?.getStringExtra(EXTRA_URI)
         if (uriString == null) {
             stopSelf()
@@ -85,6 +91,7 @@ class VideoEnhancerService : Service() {
         val outputDir = File(cacheDir, "enhanced_videos").also { it.mkdirs() }
         val outputFile = File(outputDir, "enhanced_${System.currentTimeMillis()}.mp4")
         var lastNotifiedPercent = -1
+        var cancelled = false
 
         try {
             val usedEngine = VideoEnhancer.enhance(
@@ -110,15 +117,43 @@ class VideoEnhancerService : Service() {
                 EnhanceState.Success(outputFile, outputFile.length(), savedUri != null, fellBackToGl),
             )
             notifyDone(savedToGallery = savedUri != null)
+        } catch (_: CancellationException) {
+            // User-requested cancel: discard the partial output and clear the result quietly.
+            cancelled = true
+            outputFile.delete()
+            VideoEnhanceManager.update(EnhanceState.Idle)
+            try { AnalyticsManager.trackVideoEnhanceCancelled() } catch (_: Exception) {}
         } catch (e: Exception) {
             outputFile.delete()
             VideoEnhanceManager.update(EnhanceState.Failed(e.message))
             notifyFailed()
         } finally {
-            // Detach so the done/failed notification stays after we drop the ongoing one.
-            ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_DETACH)
+            if (cancelled) {
+                // Drop the ongoing notification entirely — there's nothing to show.
+                NotificationManagerCompat.from(this).cancel(NOTIF_ID_PROGRESS)
+                ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
+            } else {
+                // Detach so the done/failed notification stays after we drop the ongoing one.
+                ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_DETACH)
+            }
             stopSelf()
         }
+    }
+
+    /**
+     * Cancels the running job (if any) and tears the service down. The job's own `finally` clears the
+     * notification and stops the service; when nothing is running we clean up directly.
+     */
+    private fun cancelCurrent() {
+        val active = job
+        if (active != null && active.isActive) {
+            active.cancel()
+            return
+        }
+        VideoEnhanceManager.reset()
+        NotificationManagerCompat.from(this).cancel(NOTIF_ID_PROGRESS)
+        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
+        stopSelf()
     }
 
     override fun onDestroy() {
@@ -155,7 +190,8 @@ class VideoEnhancerService : Service() {
             .setProgress(100, percent, false)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .setContentIntent(openAppIntent())
+            .setContentIntent(openEnhancerIntent())
+            .addAction(0, getString(R.string.video_enhancer_cancel), cancelIntent())
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .build()
     }
@@ -171,7 +207,7 @@ class VideoEnhancerService : Service() {
             .setContentTitle(getString(R.string.video_enhancer_notification_done_title))
             .setContentText(text)
             .setAutoCancel(true)
-            .setContentIntent(openAppIntent())
+            .setContentIntent(openEnhancerIntent())
             .build()
         NotificationManagerCompat.from(this).notify(NOTIF_ID_RESULT, notification)
     }
@@ -183,17 +219,28 @@ class VideoEnhancerService : Service() {
             .setContentTitle(getString(R.string.video_enhancer_notification_failed_title))
             .setContentText(getString(R.string.video_enhancer_notification_failed_text))
             .setAutoCancel(true)
-            .setContentIntent(openAppIntent())
+            .setContentIntent(openEnhancerIntent())
             .build()
         NotificationManagerCompat.from(this).notify(NOTIF_ID_RESULT, notification)
     }
 
-    private fun openAppIntent(): PendingIntent {
+    /** Tap target that (re)opens the app straight on the video enhancer screen. */
+    private fun openEnhancerIntent(): PendingIntent {
         val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra(MainActivity.EXTRA_DESTINATION, MainActivity.DEST_VIDEO_ENHANCER)
         }
         return PendingIntent.getActivity(
             this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+    }
+
+    private fun cancelIntent(): PendingIntent {
+        val intent = Intent(this, VideoEnhancerService::class.java).apply { action = ACTION_CANCEL }
+        return PendingIntent.getService(
+            this, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
     }
 
@@ -222,6 +269,7 @@ class VideoEnhancerService : Service() {
     // endregion
 
     companion object {
+        private const val ACTION_CANCEL = "tools.mo3ta.fitit.action.CANCEL_ENHANCE"
         private const val EXTRA_URI = "extra_uri"
         private const val EXTRA_LEVEL = "extra_level"
         private const val EXTRA_ENGINE = "extra_engine"
@@ -250,6 +298,13 @@ class VideoEnhancerService : Service() {
                 capOverride?.let { putExtra(EXTRA_CAP, it) }
             }
             ContextCompat.startForegroundService(context, intent)
+        }
+
+        /** Requests cancellation of the in-progress run, if any. */
+        fun cancel(context: Context) {
+            val intent = Intent(context, VideoEnhancerService::class.java).apply { action = ACTION_CANCEL }
+            // The service is already running in the foreground, so a plain command delivery is enough.
+            runCatching { context.startService(intent) }
         }
     }
 }

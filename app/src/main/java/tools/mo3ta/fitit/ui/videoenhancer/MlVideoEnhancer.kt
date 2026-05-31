@@ -15,12 +15,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.ByteBuffer
 import java.util.concurrent.Executors
+import kotlin.coroutines.coroutineContext
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -276,6 +278,8 @@ object MlVideoEnhancer {
 
                     emitFrame(firstUpscaled)
                     while (outIndex < frameCount) {
+                        // Cancel promptly between frames instead of after the next (slow) upscale.
+                        coroutineContext.ensureActive()
                         val input = inputs.receiveCatching().getOrNull() ?: break
                         val upscaled = model.upscale(input) { tf -> report(outIndex, tf) }
                         input.recycle()

@@ -187,6 +187,7 @@
     <string name="video_enhancer_no_player">لا يوجد تطبيق لتشغيل الفيديو</string>
     <string name="video_enhancer_error_generic">فشل تحسين الفيديو، حاول مرة أخرى</string>
     <string name="video_enhancer_background_hint">يمكنك مغادرة التطبيق — ستستمر المعالجة وسنُعلمك عند جاهزية الفيديو.</string>
+    <string name="video_enhancer_cancel">إلغاء</string>
     <string name="video_enhancer_notification_channel_progress">تقدّم تحسين الفيديو</string>
     <string name="video_enhancer_notification_channel_done">نتائج تحسين الفيديو</string>
     <string name="video_enhancer_notification_processing_title">جارٍ تحسين الفيديو</string>

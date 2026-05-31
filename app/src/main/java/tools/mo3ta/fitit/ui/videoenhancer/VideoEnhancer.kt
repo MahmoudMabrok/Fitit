@@ -9,8 +9,10 @@ import android.media.MediaMetadataRetriever
 import android.media.MediaMuxer
 import android.net.Uri
 import android.os.Build
+import kotlinx.coroutines.ensureActive
 import java.io.File
 import java.nio.ByteBuffer
+import kotlin.coroutines.coroutineContext
 
 /**
  * On-device video quality enhancer.
@@ -153,7 +155,7 @@ object VideoEnhancer {
         return EnhanceEngine.GL
     }
 
-    private fun transcodeVideo(
+    private suspend fun transcodeVideo(
         extractor: MediaExtractor,
         decoder: MediaCodec,
         encoder: MediaCodec,
@@ -176,6 +178,10 @@ object VideoEnhancer {
         var lastProgress = 0f
 
         while (true) {
+            // Cooperative cancellation: the loop has no other suspension point, so this is what lets
+            // a user-requested cancel actually interrupt an in-flight GL transcode.
+            coroutineContext.ensureActive()
+
             // 1. Feed encoded samples into the decoder.
             if (!inputDone) {
                 val inIndex = decoder.dequeueInputBuffer(TIMEOUT_US)

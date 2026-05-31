@@ -147,6 +147,11 @@ class VideoEnhancerViewModel(application: Application) : AndroidViewModel(applic
         VideoEnhancerService.start(context, uri, level, requestedEngine, speedMode, capOverride)
     }
 
+    /** Cancels the in-progress background run, if any. */
+    fun cancelProcessing() {
+        VideoEnhancerService.cancel(getApplication())
+    }
+
     fun saveEnhanced(context: Context) {
         val file = enhancedFile ?: return
         viewModelScope.launch(Dispatchers.IO) {
