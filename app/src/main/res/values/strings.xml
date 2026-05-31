@@ -207,4 +207,25 @@
     <string name="media_merger_share">مشاركة</string>
     <string name="media_merger_no_player">لا يوجد تطبيق للتشغيل</string>
     <string name="media_merger_error_generic">فشل الدمج. تأكد من أن المقاطع تتشارك نفس الصيغة.</string>
+
+    <!-- Audio Enhancer Screen -->
+    <string name="tool_audio_enhancer">تحسين الصوت</string>
+    <string name="tool_audio_enhancer_desc">حسّن جودة الصوت وأزل ضوضاء الخلفية</string>
+    <string name="audio_enhancer_title">تحسين الصوت</string>
+    <string name="audio_enhancer_feature_desc">اختر ملفًا صوتيًا ونظّفه على جهازك — قلّل ضوضاء الخلفية، واحذف الطنين المنخفض، ووحّد مستوى الصوت. لا يتم رفع أي شيء.</string>
+    <string name="audio_enhancer_pick">اختر ملفًا صوتيًا</string>
+    <string name="audio_enhancer_pick_hint">سيتم تنظيفه وإعادة ترميزه</string>
+    <string name="audio_enhancer_tap_to_change">اضغط لتغيير الملف</string>
+    <string name="audio_enhancer_level_label">مستوى التحسين</string>
+    <string name="audio_enhancer_level_light">خفيف</string>
+    <string name="audio_enhancer_level_standard">قياسي</string>
+    <string name="audio_enhancer_level_strong">قوي</string>
+    <string name="audio_enhancer_process">تحسين الصوت</string>
+    <string name="audio_enhancer_done">الصوت المحسّن جاهز</string>
+    <string name="audio_enhancer_save">حفظ</string>
+    <string name="audio_enhancer_saved">تم الحفظ</string>
+    <string name="audio_enhancer_share">مشاركة</string>
+    <string name="audio_enhancer_error_no_audio">لا يوجد مسار صوتي في هذا الملف</string>
+    <string name="audio_enhancer_error_too_long">المقطع طويل جدًا. جرّب مقطعًا أقل من 10 دقائق.</string>
+    <string name="audio_enhancer_error_generic">تعذّر تحسين الصوت، حاول مرة أخرى</string>
 </resources>

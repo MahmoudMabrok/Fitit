@@ -3,4 +3,5 @@
     <cache-path name="video_chunks" path="video_chunks/" />
     <cache-path name="enhanced_videos" path="enhanced_videos/" />
     <cache-path name="merged_media" path="merged_media/" />
+    <cache-path name="enhanced_audio" path="enhanced_audio/" />
 </paths>
