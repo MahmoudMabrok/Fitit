@@ -59,10 +59,18 @@ enum class EnhanceEngine { GL, ML }
  *  - [QUALITY] highest input resolution, every frame — slowest, sharpest result.
  */
 enum class MlSpeedMode(val inputShortSideCap: Int, val frameStride: Int) {
-    FAST(inputShortSideCap = 160, frameStride = 2),
+    FAST(inputShortSideCap = 150, frameStride = 2),
     BALANCED(inputShortSideCap = 270, frameStride = 1),
     QUALITY(inputShortSideCap = 360, frameStride = 1),
 }
+
+/**
+ * Selectable input-resolution caps (short side, px) offered for [MlSpeedMode.FAST]. Lower values
+ * mean fewer tiles and faster — but blockier — output, letting the user dial in exactly how much
+ * quality to trade for speed. [MlSpeedMode.FAST]'s own [MlSpeedMode.inputShortSideCap] is the
+ * default selection and must stay in this list.
+ */
+val FAST_CAP_OPTIONS = listOf(10, 50, 100, 120, 150, 170)
 
 const val MIN_OUTPUT_BITRATE = 1_000_000      // 1 Mbps floor so low-res clips still look clean
 const val MAX_OUTPUT_BITRATE = 40_000_000     // 40 Mbps ceiling to keep file sizes sane

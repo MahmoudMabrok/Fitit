@@ -106,6 +106,14 @@ class EnhancementPresetTest {
     }
 
     @Test
+    fun `fast cap options are the selectable defaults and include fast's own cap`() {
+        assertEquals(listOf(10, 50, 100, 120, 150, 170), FAST_CAP_OPTIONS)
+        // The default Fast selection must be a real menu entry, else the dropdown opens with no match.
+        assertTrue(MlSpeedMode.FAST.inputShortSideCap in FAST_CAP_OPTIONS)
+        assertTrue(FAST_CAP_OPTIONS.all { it > 0 })
+    }
+
+    @Test
     fun `orientationHint is zero for an upright source`() {
         assertEquals(0, orientationHint(0, 1920, 1080, 3840, 2160))
     }
