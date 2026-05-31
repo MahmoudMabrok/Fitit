@@ -36,6 +36,11 @@ on:
         required: false
         type: boolean
         default: true
+      managed_publishing:
+        description: 'Play Console Managed Publishing is ON. Keep checked to match that setting (sends changesNotSentForReview=true). Uncheck only if Managed Publishing is OFF.'
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   build:
@@ -197,6 +202,11 @@ jobs:
           # App-content declaration (e.g. the foreground service permissions) is
           # still pending — land the build, complete the declaration, then submit.
           status: ${{ github.event.inputs.submit_for_review == 'true' && 'completed' || 'draft' }}
+          # changesNotSentForReview is coupled to the Play Console "Managed Publishing"
+          # setting: it MUST be true when Managed Publishing is ON (Play can't auto-send
+          # for review), and MUST be false/absent when it is OFF (else the API rejects it
+          # with "changesNotSentForReview must not be set"). Drive it from the input.
+          changesNotSentForReview: ${{ github.event.inputs.managed_publishing == 'true' && 'true' || 'false' }}
           mappingFile: app/build/outputs/mapping/release/mapping.txt
 
       # Step 2: only once the publish to Google Play has succeeded do we commit
