@@ -39,6 +39,9 @@ object AnalyticsManager {
 
     fun trackShareApp() = log("zaki_settings_share_app")
 
+    fun trackCacheCleared(freedBytes: Long) =
+        log("zaki_settings_cache_cleared", "freed_bytes" to freedBytes.toString())
+
     fun trackVideoSplitStarted(durationMs: Long) =
         log("zaki_video_split_started", "duration_ms" to durationMs.toString())
 
