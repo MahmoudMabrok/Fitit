@@ -196,7 +196,8 @@ object VideoEnhancer {
                         inputSurface.swapBuffers()
                         if (durationUs > 0) {
                             val p = (bufferInfo.presentationTimeUs.toFloat() / durationUs).coerceIn(0f, 0.99f)
-                            if (p - lastProgress >= 0.01f) {
+                            // Fine step (0.1%) so the displayed fractional percentage keeps moving.
+                            if (p - lastProgress >= 0.001f) {
                                 lastProgress = p
                                 onProgress(p)
                             }

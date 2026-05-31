@@ -123,10 +123,11 @@ object MlVideoEnhancer {
         }
 
         // Throttled progress: tile callbacks fire many times per frame, so only forward real steps.
+        // Forward fine-grained steps (0.01%) so the UI can show a fractional, lively percentage.
         var lastReported = -1f
         fun report(frameIndex: Int, tileFraction: Float) {
             val p = ((frameIndex + tileFraction) / frameCount * 0.99f).coerceIn(0f, 0.99f)
-            if (p - lastReported >= 0.001f) {
+            if (p - lastReported >= 0.0001f) {
                 lastReported = p
                 onProgress(p)
             }
