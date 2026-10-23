@@ -96,6 +96,12 @@ object AnalyticsManager {
     fun trackAudioEnhancePreviewed(source: String = "") =
         log("zaki_audio_enhance_previewed", "source" to source)
 
+    fun trackBlueSecretCopied(mode: String) =
+        log("zaki_blue_secret_copied", "mode" to mode)
+
+    fun trackBlueSecretRevealed(found: Boolean) =
+        log("zaki_blue_secret_revealed", "found" to found.toString())
+
     private fun log(name: String, vararg params: Pair<String, String>) {
         val bundle = Bundle()
         params.forEach { (key, value) -> bundle.putString(key, value) }
