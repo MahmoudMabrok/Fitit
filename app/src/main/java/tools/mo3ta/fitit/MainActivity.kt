@@ -26,6 +26,7 @@ import tools.mo3ta.fitit.ui.videosplitter.VideoSplitterScreen
 import tools.mo3ta.fitit.ui.videoenhancer.VideoEnhancerScreen
 import tools.mo3ta.fitit.ui.audioextractor.AudioExtractorScreen
 import tools.mo3ta.fitit.ui.audioenhancer.AudioEnhancerScreen
+import tools.mo3ta.fitit.ui.bluesecret.BlueSecretScreen
 import tools.mo3ta.fitit.ui.theme.FititTheme
 
 class MainActivity : ComponentActivity() {
@@ -93,6 +94,7 @@ class MainActivity : ComponentActivity() {
                 }
                 composable("home") {
                     HomeScreen(
+                        onNavigateToBlueSecret = { navController.navigate("blue_secret") },
                         onNavigateToTextImage = { navController.navigate("text_image") },
                         onNavigateToEmptyText = { navController.navigate("empty_text") },
                         onNavigateToOpenWa = { navController.navigate("open_wa") },
@@ -104,6 +106,9 @@ class MainActivity : ComponentActivity() {
                         onNavigateToAudioEnhancer = { navController.navigate("audio_enhancer") },
                         onNavigateToSettings = { navController.navigate("settings") }
                     )
+                }
+                composable("blue_secret") {
+                    BlueSecretScreen(onBack = { navController.popBackStack() })
                 }
                 composable("text_image") {
                     TextImageScreen(onBack = { navController.popBackStack() })

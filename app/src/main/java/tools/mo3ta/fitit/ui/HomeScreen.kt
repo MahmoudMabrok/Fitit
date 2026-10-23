@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.MergeType
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -41,6 +42,7 @@ import tools.mo3ta.fitit.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    onNavigateToBlueSecret: () -> Unit,
     onNavigateToTextImage: () -> Unit,
     onNavigateToEmptyText: () -> Unit,
     onNavigateToOpenWa: () -> Unit,
@@ -101,6 +103,8 @@ fun HomeScreen(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
+        val blueSecretTitle = stringResource(R.string.tool_blue_secret)
+        val blueSecretDesc = stringResource(R.string.tool_blue_secret_desc)
         val textImageTitle = stringResource(R.string.tool_text_image)
         val textImageDesc = stringResource(R.string.tool_text_image_desc)
         val emptyTextTitle = stringResource(R.string.tool_empty_text)
@@ -120,8 +124,9 @@ fun HomeScreen(
         val audioEnhancerTitle = stringResource(R.string.tool_audio_enhancer)
         val audioEnhancerDesc = stringResource(R.string.tool_audio_enhancer_desc)
 
-        val tools = remember(textImageTitle, emptyTextTitle, openWaTitle, textSplitterTitle, videoSplitterTitle, videoEnhancerTitle, mediaMergerTitle, audioExtractorTitle, audioEnhancerTitle) {
+        val tools = remember(blueSecretTitle, textImageTitle, emptyTextTitle, openWaTitle, textSplitterTitle, videoSplitterTitle, videoEnhancerTitle, mediaMergerTitle, audioExtractorTitle, audioEnhancerTitle) {
             listOf(
+                ToolItem(blueSecretTitle, blueSecretDesc, Icons.Default.Tag, Color(0xFF1D9BF0)),
                 ToolItem(textImageTitle, textImageDesc, Icons.Default.AutoAwesome, Color(0xFF007AFF)),
                 ToolItem(emptyTextTitle, emptyTextDesc, Icons.Default.VisibilityOff, Color(0xFF5856D6)),
                 ToolItem(openWaTitle, openWaDesc, Icons.Default.Chat, Color(0xFF25D366)),
@@ -134,8 +139,8 @@ fun HomeScreen(
             )
         }
 
-        val onClicks = remember(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa, onNavigateToTextSplitter, onNavigateToVideoSplitter, onNavigateToVideoEnhancer, onNavigateToMediaMerger, onNavigateToAudioExtractor, onNavigateToAudioEnhancer) {
-            listOf(onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa, onNavigateToTextSplitter, onNavigateToVideoSplitter, onNavigateToVideoEnhancer, onNavigateToMediaMerger, onNavigateToAudioExtractor, onNavigateToAudioEnhancer)
+        val onClicks = remember(onNavigateToBlueSecret, onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa, onNavigateToTextSplitter, onNavigateToVideoSplitter, onNavigateToVideoEnhancer, onNavigateToMediaMerger, onNavigateToAudioExtractor, onNavigateToAudioEnhancer) {
+            listOf(onNavigateToBlueSecret, onNavigateToTextImage, onNavigateToEmptyText, onNavigateToOpenWa, onNavigateToTextSplitter, onNavigateToVideoSplitter, onNavigateToVideoEnhancer, onNavigateToMediaMerger, onNavigateToAudioExtractor, onNavigateToAudioEnhancer)
         }
 
         LazyVerticalGrid(
